@@ -13,13 +13,33 @@ class QuickActionItem {
   });
 }
 
-class QuickActionsGrid extends StatelessWidget {
+class QuickActionsGrid extends StatefulWidget {
   final List<QuickActionItem> actions;
 
   const QuickActionsGrid({super.key, required this.actions});
 
   @override
+  State<QuickActionsGrid> createState() => _QuickActionsGridState();
+}
+
+class _QuickActionsGridState extends State<QuickActionsGrid> {
+  bool _isExpanded = false;
+
+  @override
   Widget build(BuildContext context) {
+    // In compact mode, show actions skipping the first one (Deposit),
+    // and replace the 4th with 'Lainnya'
+    final List<QuickActionItem> displayActions = _isExpanded
+        ? widget.actions
+        : [
+            ...widget.actions.skip(1).take(3),
+            QuickActionItem(
+              icon: Icons.grid_view_rounded,
+              label: 'Lainnya',
+              onTap: () => setState(() => _isExpanded = true),
+            ),
+          ];
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       child: Column(
@@ -27,20 +47,27 @@ class QuickActionsGrid extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: actions.take(4)
+            children: displayActions
+                .take(4)
                 .map((action) => Expanded(child: _QuickActionButton(item: action)))
                 .toList(),
           ),
-          const SizedBox(height: AppSpacing.xl),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: actions.skip(4).take(4)
-                .map((action) => Expanded(child: _QuickActionButton(item: action)))
-                .toList(),
-          ),
-          const SizedBox(height: AppSpacing.xxl),
-          _buildHideButton(),
+          if (_isExpanded && widget.actions.length > 4) ...[
+            const SizedBox(height: AppSpacing.xl),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: widget.actions
+                  .skip(4)
+                  .take(4)
+                  .map((action) => Expanded(child: _QuickActionButton(item: action)))
+                  .toList(),
+            ),
+          ],
+          if (_isExpanded) ...[
+            const SizedBox(height: AppSpacing.xxl),
+            _buildHideButton(),
+          ],
           const SizedBox(height: AppSpacing.xxl),
         ],
       ),
@@ -49,8 +76,12 @@ class QuickActionsGrid extends StatelessWidget {
 
   Widget _buildHideButton() {
     return GestureDetector(
-      onTap: () {},
-      child: Row(
+      onTap: () {
+        setState(() {
+          _isExpanded = false;
+        });
+      },
+      child: const Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
@@ -61,8 +92,12 @@ class QuickActionsGrid extends StatelessWidget {
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(width: AppSpacing.xs),
-          Icon(Icons.keyboard_arrow_up_rounded, color: Colors.white70, size: 18),
+          SizedBox(width: AppSpacing.xs),
+          Icon(
+            Icons.keyboard_arrow_up_rounded,
+            color: Colors.white70,
+            size: 18,
+          ),
         ],
       ),
     );

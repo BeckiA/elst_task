@@ -57,13 +57,10 @@ class _DashboardPageState extends State<DashboardPage>
       parent: _fadeController,
       curve: Curves.easeOut,
     );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.05),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _slideController,
-      curve: Curves.easeOutCubic,
-    ));
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.05), end: Offset.zero).animate(
+          CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
+        );
 
     // Staggered section animations
     _staggerControllers = List.generate(
@@ -79,10 +76,12 @@ class _DashboardPageState extends State<DashboardPage>
         .toList();
 
     _staggerSlideAnimations = _staggerControllers
-        .map((c) => Tween<Offset>(
-              begin: const Offset(0, 0.08),
-              end: Offset.zero,
-            ).animate(CurvedAnimation(parent: c, curve: Curves.easeOutCubic)))
+        .map(
+          (c) => Tween<Offset>(
+            begin: const Offset(0, 0.08),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(parent: c, curve: Curves.easeOutCubic)),
+        )
         .toList();
 
     context.read<DashboardBloc>().add(const LoadDashboard());
@@ -179,10 +178,7 @@ class _DashboardPageState extends State<DashboardPage>
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
             ),
             const SizedBox(height: AppSpacing.xxl),
             ElevatedButton.icon(
@@ -234,20 +230,44 @@ class _DashboardPageState extends State<DashboardPage>
                     chartData: state.chartData,
                     isBalanceVisible: state.isBalanceVisible,
                     onToggleVisibility: () {
-                      context
-                          .read<DashboardBloc>()
-                          .add(const ToggleBalanceVisibility());
+                      context.read<DashboardBloc>().add(
+                        const ToggleBalanceVisibility(),
+                      );
                     },
                     child: QuickActionsGrid(
                       actions: [
-                        QuickActionItem(icon: Icons.account_balance_wallet_outlined, label: 'Deposit'),
-                        QuickActionItem(icon: Icons.monetization_on_outlined, label: 'Earn'),
-                        QuickActionItem(icon: Icons.school_outlined, label: 'Academy'),
-                        QuickActionItem(icon: Icons.calendar_today_rounded, label: 'Recurring'),
-                        QuickActionItem(icon: Icons.receipt_long_rounded, label: 'History'),
-                        QuickActionItem(icon: Icons.people_outline_rounded, label: 'Referral'),
-                        QuickActionItem(icon: Icons.headset_mic_outlined, label: 'Live Chat'),
-                        QuickActionItem(icon: Icons.chat_bubble_outline_rounded, label: 'Chat Room'),
+                        QuickActionItem(
+                          icon: Icons.account_balance_wallet_outlined,
+                          label: 'Deposit',
+                        ),
+                        QuickActionItem(
+                          icon: Icons.monetization_on_outlined,
+                          label: 'Earn',
+                        ),
+                        QuickActionItem(
+                          icon: Icons.school_outlined,
+                          label: 'Academy',
+                        ),
+                        QuickActionItem(
+                          icon: Icons.calendar_today_rounded,
+                          label: 'Recurring',
+                        ),
+                        QuickActionItem(
+                          icon: Icons.receipt_long_rounded,
+                          label: 'History',
+                        ),
+                        QuickActionItem(
+                          icon: Icons.people_outline_rounded,
+                          label: 'Referral',
+                        ),
+                        QuickActionItem(
+                          icon: Icons.headset_mic_outlined,
+                          label: 'Live Chat',
+                        ),
+                        QuickActionItem(
+                          icon: Icons.chat_bubble_outline_rounded,
+                          label: 'Chat Room',
+                        ),
                       ],
                     ),
                   ),
@@ -301,7 +321,7 @@ class _DashboardPageState extends State<DashboardPage>
                                 'Asset List',
                                 style: TextStyle(
                                   color: AppColors.textPrimary,
-                                  fontSize: 18,
+                                  fontSize: 24,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
@@ -310,7 +330,7 @@ class _DashboardPageState extends State<DashboardPage>
                                 child: Text(
                                   'See All',
                                   style: TextStyle(
-                                    color: AppColors.primary,
+                                    color: AppColors.textSecondary,
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -323,9 +343,9 @@ class _DashboardPageState extends State<DashboardPage>
                         AssetFilterChips(
                           selectedCategory: state.selectedCategory,
                           onCategorySelected: (category) {
-                            context
-                                .read<DashboardBloc>()
-                                .add(FilterAssets(category));
+                            context.read<DashboardBloc>().add(
+                              FilterAssets(category),
+                            );
                           },
                         ),
                       ],
@@ -336,20 +356,13 @@ class _DashboardPageState extends State<DashboardPage>
 
               // Asset List
               SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final asset = state.assets[index];
-                    return _staggeredSection(
-                      4,
-                      AssetListTile(
-                        asset: asset,
-                        index: index,
-                        onTap: () {},
-                      ),
-                    );
-                  },
-                  childCount: state.assets.length,
-                ),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final asset = state.assets[index];
+                  return _staggeredSection(
+                    4,
+                    AssetListTile(asset: asset, index: index, onTap: () {}),
+                  );
+                }, childCount: state.assets.length),
               ),
 
               // Activity List

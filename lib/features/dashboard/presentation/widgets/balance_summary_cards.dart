@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/formatters.dart';
 
@@ -21,17 +23,17 @@ class BalanceSummaryCards extends StatelessWidget {
       child: Column(
         children: [
           _buildBalanceCard(
-            icon: Icons.currency_bitcoin_rounded,
+            icon: FontAwesomeIcons.bity,
             label: 'Crypto',
             balance: cryptoBalance,
             iconColor: AppColors.primary,
           ),
           const SizedBox(height: AppSpacing.md),
           _buildBalanceCard(
-            icon: Icons.account_balance_wallet_outlined,
+            icon: LucideIcons.circleDollarSign,
             label: 'Cash',
             balance: cashBalance,
-            iconColor: AppColors.positive,
+            iconColor: AppColors.primary,
           ),
         ],
       ),
@@ -39,7 +41,7 @@ class BalanceSummaryCards extends StatelessWidget {
   }
 
   Widget _buildBalanceCard({
-    required IconData icon,
+    required dynamic icon,
     required String label,
     required double balance,
     required Color iconColor,
@@ -51,6 +53,7 @@ class BalanceSummaryCards extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: AppColors.surface,
+        border: Border.all(color: AppColors.border),
         borderRadius: BorderRadius.circular(AppRadius.xl),
         boxShadow: [
           BoxShadow(
@@ -62,14 +65,12 @@ class BalanceSummaryCards extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
+          SizedBox(
             width: 40,
             height: 40,
-            decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: iconColor, size: 22),
+            child: icon is IconData
+                ? Icon(icon, color: iconColor, size: 24)
+                : FaIcon(icon, color: iconColor, size: 24),
           ),
           const SizedBox(width: AppSpacing.md),
           Text(
@@ -82,9 +83,7 @@ class BalanceSummaryCards extends StatelessWidget {
           ),
           const Spacer(),
           Text(
-            isVisible
-                ? CurrencyFormatter.formatRupiah(balance)
-                : '••••••',
+            isVisible ? CurrencyFormatter.formatRupiah(balance) : '••••••',
             style: TextStyle(
               color: AppColors.textPrimary,
               fontSize: 16,

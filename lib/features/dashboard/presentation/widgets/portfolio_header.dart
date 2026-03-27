@@ -64,37 +64,29 @@ class PortfolioHeader extends StatelessWidget {
         children: [
           // Subtle background graphic opacity overlay
           Positioned(
-            right: -60,
-            bottom: -20,
+            right: -80,
+            bottom: -80,
             child: Opacity(
               opacity: 0.05,
-              child: Transform.rotate(
-                angle: math.pi / 4,
-                child: Container(
-                  width: 280,
-                  height: 280,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.white, width: 40),
-                    borderRadius: BorderRadius.circular(40),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            right: 40,
-            bottom: 60,
-            child: Opacity(
-              opacity: 0.05,
-              child: Transform.rotate(
-                angle: math.pi / 4,
-                child: Container(
-                  width: 200,
-                  height: 200,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.white, width: 30),
-                    borderRadius: BorderRadius.circular(30),
-                  ),
+              child: SizedBox(
+                width: 320,
+                height: 320,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    for (var angle in [math.pi / 4, -math.pi / 4])
+                      Transform.rotate(
+                        angle: angle,
+                        child: Container(
+                          width: 42,
+                          height: 320,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(21),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),

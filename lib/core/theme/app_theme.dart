@@ -3,7 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
   // Primary teal/aqua palette
-  static const Color primary = Color(0xFF00B5D1); // Keeping bright teal for buttons
+  static const Color primary = Color(
+    0xFF00B5D1,
+  ); // Keeping bright teal for buttons
   static const Color primaryDark = Color(0xFF0091A8);
   static const Color primaryLight = Color(0xFF4DD9EC);
 
@@ -31,6 +33,9 @@ class AppColors {
   // Header text
   static const Color headerText = Color(0xFFFFFFFF);
   static const Color headerTextSecondary = Color(0xB3FFFFFF); // 70% white
+
+  // Card colors
+  static const Color border = Color(0xFFE0E0E0);
 }
 
 class AppTheme {
@@ -47,9 +52,7 @@ class AppTheme {
       textTheme: GoogleFonts.interTextTheme(),
       cardTheme: CardThemeData(
         elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         color: AppColors.surface,
       ),
       appBarTheme: const AppBarTheme(
