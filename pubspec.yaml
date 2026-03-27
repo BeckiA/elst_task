@@ -4,7 +4,7 @@ publish_to: 'none'
 version: 0.1.0
 
 environment:
-  sdk: ^3.10.3
+  sdk: ^3.10.0
 
 dependencies:
   equatable: ^2.0.8
@@ -28,3 +28,4 @@ flutter:
   uses-material-design: true
   assets:
     - assets/icons/
+    - assets/images/

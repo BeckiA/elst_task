@@ -15,7 +15,7 @@ class AssetFilterChips extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 38,
+      height: 44,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
@@ -29,15 +29,15 @@ class AssetFilterChips extends StatelessWidget {
               onTap: () => onCategorySelected(category),
             ),
           );
-        }).toList(),
+        }).toList(growable: false),
       ),
     );
   }
 
   String _categoryLabel(AssetFilterCategory category) {
     switch (category) {
-      case AssetFilterCategory.trading:
-        return 'Trading';
+      case AssetFilterCategory.trending:
+        return 'Trending';
       case AssetFilterCategory.gainers:
         return 'Gainers';
       case AssetFilterCategory.losers:
@@ -102,22 +102,24 @@ class _FilterChipState extends State<_FilterChip>
           curve: Curves.easeOut,
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.xl,
-            vertical: AppSpacing.sm,
+            vertical: AppSpacing.md,
           ),
           decoration: BoxDecoration(
-            color: widget.isSelected ? AppColors.primary : Colors.transparent,
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(AppRadius.full),
             border: Border.all(
               color: widget.isSelected
-                  ? AppColors.primary
+                  ? AppColors.filterChipSelected
                   : AppColors.divider,
-              width: 1.5,
+              width: widget.isSelected ? 1.25 : 1,
             ),
           ),
           child: Text(
             widget.label,
             style: TextStyle(
-              color: widget.isSelected ? Colors.white : AppColors.textSecondary,
+              color: widget.isSelected
+                  ? AppColors.filterChipSelected
+                  : AppColors.textPrimary,
               fontSize: 13,
               fontWeight: FontWeight.w600,
             ),

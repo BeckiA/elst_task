@@ -1,8 +1,10 @@
 import '../../domain/entities/dashboard_stats.dart';
 import '../../domain/entities/asset.dart';
-import '../../domain/entities/activity.dart';
+import '../../domain/entities/asset_detail.dart';
+import '../../domain/entities/news_article.dart';
 import '../../domain/entities/portfolio_chart_data.dart';
 import '../../domain/repositories/dashboard_repository.dart';
+import '../../domain/value_objects/chart_timeframe.dart';
 import '../../domain/value_objects/filter_values.dart';
 import '../datasources/mock_dashboard_datasource.dart';
 
@@ -30,14 +32,14 @@ class DashboardRepositoryImpl implements DashboardRepository {
   }
 
   @override
-  Future<List<Activity>> getRecentActivities({
-    int page = 0,
-    int limit = 20,
+  Future<AssetDetail> getAssetDetail(
+    String assetId, {
+    required ChartTimeframe timeframe,
   }) async {
     try {
-      return await dataSource.getRecentActivities(page: page, limit: limit);
+      return await dataSource.getAssetDetail(assetId, timeframe: timeframe);
     } catch (e) {
-      throw Exception('Failed to fetch activities: $e');
+      throw Exception('Failed to fetch asset detail: $e');
     }
   }
 
@@ -49,6 +51,16 @@ class DashboardRepositoryImpl implements DashboardRepository {
       return await dataSource.getPortfolioChartData(range: range);
     } catch (e) {
       throw Exception('Failed to fetch chart data: $e');
+    }
+  }
+
+  @override
+  Future<List<NewsArticle>> getNews() async {
+    try {
+      final models = await dataSource.getNews();
+      return List<NewsArticle>.from(models);
+    } catch (e) {
+      throw Exception('Failed to fetch news: $e');
     }
   }
 }

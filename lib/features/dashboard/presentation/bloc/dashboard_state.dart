@@ -1,8 +1,9 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/dashboard_stats.dart';
 import '../../domain/entities/asset.dart';
-import '../../domain/entities/activity.dart';
+import '../../domain/entities/news_article.dart';
 import '../../domain/entities/portfolio_chart_data.dart';
+import '../../domain/value_objects/dashboard_view_mode.dart';
 import '../../domain/value_objects/filter_values.dart';
 
 abstract class DashboardState extends Equatable {
@@ -23,39 +24,43 @@ class DashboardLoading extends DashboardState {
 class DashboardLoaded extends DashboardState {
   final DashboardStats stats;
   final List<Asset> assets;
-  final List<Activity> activities;
   final PortfolioChartData chartData;
   final AssetFilterCategory selectedCategory;
   final TimeRange selectedTimeRange;
   final bool isBalanceVisible;
+  final DashboardViewMode viewMode;
+  final List<NewsArticle> news;
 
   const DashboardLoaded({
     required this.stats,
     required this.assets,
-    required this.activities,
     required this.chartData,
-    this.selectedCategory = AssetFilterCategory.trading,
+    this.selectedCategory = AssetFilterCategory.trending,
     this.selectedTimeRange = TimeRange.month,
     this.isBalanceVisible = true,
+    this.viewMode = DashboardViewMode.lite,
+    this.news = const [],
   });
 
   DashboardLoaded copyWith({
     DashboardStats? stats,
     List<Asset>? assets,
-    List<Activity>? activities,
     PortfolioChartData? chartData,
     AssetFilterCategory? selectedCategory,
     TimeRange? selectedTimeRange,
     bool? isBalanceVisible,
+    DashboardViewMode? viewMode,
+    List<NewsArticle>? news,
   }) {
     return DashboardLoaded(
       stats: stats ?? this.stats,
       assets: assets ?? this.assets,
-      activities: activities ?? this.activities,
       chartData: chartData ?? this.chartData,
       selectedCategory: selectedCategory ?? this.selectedCategory,
       selectedTimeRange: selectedTimeRange ?? this.selectedTimeRange,
       isBalanceVisible: isBalanceVisible ?? this.isBalanceVisible,
+      viewMode: viewMode ?? this.viewMode,
+      news: news ?? this.news,
     );
   }
 
@@ -63,11 +68,12 @@ class DashboardLoaded extends DashboardState {
   List<Object?> get props => [
         stats,
         assets,
-        activities,
         chartData,
         selectedCategory,
         selectedTimeRange,
         isBalanceVisible,
+        viewMode,
+        news,
       ];
 }
 

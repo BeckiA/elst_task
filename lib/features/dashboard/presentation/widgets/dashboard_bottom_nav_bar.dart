@@ -1,7 +1,9 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 
-class DashboardBottomNavBar extends StatefulWidget {
+class DashboardBottomNavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
@@ -12,67 +14,50 @@ class DashboardBottomNavBar extends StatefulWidget {
   });
 
   @override
-  State<DashboardBottomNavBar> createState() => _DashboardBottomNavBarState();
-}
-
-class _DashboardBottomNavBarState extends State<DashboardBottomNavBar> {
-  @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(AppRadius.full),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.xxl,
             vertical: AppSpacing.md,
           ),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.75),
+            borderRadius: BorderRadius.circular(AppRadius.full),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.55),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _NavItem(
+              _NavIcon(
                 icon: Icons.home_rounded,
-                label: 'Home',
-                isSelected: widget.currentIndex == 0,
-                onTap: () => widget.onTap(0),
+                iconOutlined: Icons.home_outlined,
+                isSelected: currentIndex == 0,
+                onTap: () => onTap(0),
               ),
-              _NavItem(
+              _NavIcon(
                 icon: Icons.bar_chart_rounded,
-                label: 'Market',
-                isSelected: widget.currentIndex == 1,
-                onTap: () => widget.onTap(1),
+                iconOutlined: Icons.bar_chart_outlined,
+                isSelected: currentIndex == 1,
+                onTap: () => onTap(1),
               ),
-              _NavItem(
-                icon: Icons.swap_horiz_rounded,
-                label: 'Trade',
-                isSelected: widget.currentIndex == 2,
-                onTap: () => widget.onTap(2),
-                isCenter: true,
-              ),
-              _NavItem(
-                icon: Icons.receipt_long_rounded,
-                label: 'History',
-                isSelected: widget.currentIndex == 3,
-                onTap: () => widget.onTap(3),
-              ),
-              _NavItem(
-                icon: Icons.account_balance_wallet_outlined,
-                label: 'Portfolio',
-                isSelected: widget.currentIndex == 4,
-                onTap: () => widget.onTap(4),
+              _NavIcon(
+                icon: Icons.account_balance_wallet_rounded,
+                iconOutlined: Icons.account_balance_wallet_outlined,
+                isSelected: currentIndex == 2,
+                onTap: () => onTap(2),
               ),
             ],
           ),
@@ -82,75 +67,33 @@ class _DashboardBottomNavBarState extends State<DashboardBottomNavBar> {
   }
 }
 
-class _NavItem extends StatelessWidget {
+class _NavIcon extends StatelessWidget {
   final IconData icon;
-  final String label;
+  final IconData iconOutlined;
   final bool isSelected;
-  final bool isCenter;
   final VoidCallback onTap;
 
-  const _NavItem({
+  const _NavIcon({
     required this.icon,
-    required this.label,
+    required this.iconOutlined,
     required this.isSelected,
     required this.onTap,
-    this.isCenter = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (isCenter) {
-      return GestureDetector(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
         onTap: onTap,
-        child: Container(
-          width: 52,
-          height: 52,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [AppColors.primary, AppColors.primaryDark],
-            ),
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withOpacity(0.35),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
+        customBorder: const CircleBorder(),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.sm),
+          child: Icon(
+            isSelected ? icon : iconOutlined,
+            color: isSelected ? AppColors.primary : AppColors.textTertiary,
+            size: 28,
           ),
-          child: Icon(icon, color: Colors.white, size: 26),
-        ),
-      );
-    }
-
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 52,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              child: Icon(
-                icon,
-                color: isSelected ? AppColors.primary : AppColors.textTertiary,
-                size: 24,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? AppColors.primary : AppColors.textTertiary,
-                fontSize: 11,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-              ),
-            ),
-          ],
         ),
       ),
     );

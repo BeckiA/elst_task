@@ -2,21 +2,26 @@ import 'dart:math';
 
 import '../models/dashboard_stats_model.dart';
 import '../models/asset_model.dart';
-import '../models/activity_model.dart';
-import '../../domain/entities/activity.dart';
+import '../models/asset_detail_model.dart';
+import '../models/news_article_model.dart';
+import '../../domain/entities/asset_detail.dart';
+import '../../domain/entities/candlestick.dart';
 import '../../domain/entities/portfolio_chart_data.dart';
+import '../../domain/value_objects/chart_timeframe.dart';
 import '../../domain/value_objects/filter_values.dart';
+import '../../../../core/utils/formatters.dart';
 
 abstract class DashboardDataSource {
   Future<DashboardStatsModel> getDashboardStats();
   Future<List<AssetModel>> getAssets({AssetFilterCategory? category});
-  Future<List<ActivityModel>> getRecentActivities({
-    int page = 0,
-    int limit = 20,
+  Future<AssetDetailModel> getAssetDetail(
+    String assetId, {
+    required ChartTimeframe timeframe,
   });
   Future<PortfolioChartData> getPortfolioChartData({
     TimeRange range = TimeRange.month,
   });
+  Future<List<NewsArticleModel>> getNews();
 }
 
 class MockDashboardDataSource implements DashboardDataSource {
@@ -34,11 +39,8 @@ class MockDashboardDataSource implements DashboardDataSource {
     );
   }
 
-  @override
-  Future<List<AssetModel>> getAssets({AssetFilterCategory? category}) async {
-    await Future.delayed(const Duration(milliseconds: 600));
-
-    final allAssets = [
+  List<AssetModel> _allMockAssets() {
+    return [
       AssetModel(
         id: '1',
         name: 'Bitcoin',
@@ -51,81 +53,46 @@ class MockDashboardDataSource implements DashboardDataSource {
       ),
       AssetModel(
         id: '2',
-        name: 'Ethereum',
-        ticker: 'ETH',
-        iconUrl: 'ethereum',
-        price: 48250000,
-        priceChange: 1250000,
-        changePercentage: 2.66,
-        sparklineData: _generateSparkline(true),
+        name: 'Tether',
+        ticker: 'USDT',
+        iconUrl: 'tether',
+        price: 16234,
+        priceChange: -89,
+        changePercentage: -0.55,
+        sparklineData: _generateSparkline(false),
       ),
       AssetModel(
         id: '3',
-        name: 'Solana',
-        ticker: 'SOL',
-        iconUrl: 'solana',
-        price: 2850000,
-        priceChange: -125000,
-        changePercentage: -4.2,
-        sparklineData: _generateSparkline(false),
+        name: 'Ripple',
+        ticker: 'XRP',
+        iconUrl: 'xrp',
+        price: 46616,
+        priceChange: 632987,
+        changePercentage: 4.2,
+        sparklineData: _generateSparkline(true),
       ),
       AssetModel(
         id: '4',
-        name: 'Cardano',
-        ticker: 'ADA',
-        iconUrl: 'cardano',
-        price: 9500,
-        priceChange: 320,
-        changePercentage: 3.49,
+        name: 'Binance',
+        ticker: 'BNB',
+        iconUrl: 'binance',
+        price: 2850000,
+        priceChange: 98500,
+        changePercentage: 3.58,
         sparklineData: _generateSparkline(true),
-      ),
-      AssetModel(
-        id: '5',
-        name: 'Polygon',
-        ticker: 'MATIC',
-        iconUrl: 'polygon',
-        price: 14200,
-        priceChange: -580,
-        changePercentage: -3.92,
-        sparklineData: _generateSparkline(false),
-      ),
-      AssetModel(
-        id: '6',
-        name: 'Ripple',
-        ticker: 'XRP',
-        iconUrl: 'ripple',
-        price: 8900,
-        priceChange: 156,
-        changePercentage: 1.78,
-        sparklineData: _generateSparkline(true),
-      ),
-      AssetModel(
-        id: '7',
-        name: 'Dogecoin',
-        ticker: 'DOGE',
-        iconUrl: 'dogecoin',
-        price: 1250,
-        priceChange: 95,
-        changePercentage: 8.23,
-        sparklineData: _generateSparkline(true),
-      ),
-      AssetModel(
-        id: '8',
-        name: 'Avalanche',
-        ticker: 'AVAX',
-        iconUrl: 'avalanche',
-        price: 552000,
-        priceChange: -12400,
-        changePercentage: -2.19,
-        sparklineData: _generateSparkline(false),
       ),
     ];
+  }
 
-    if (category == null || category == AssetFilterCategory.trading) {
-      return allAssets;
-    }
+  @override
+  Future<List<AssetModel>> getAssets({AssetFilterCategory? category}) async {
+    await Future.delayed(const Duration(milliseconds: 600));
 
-    switch (category) {
+    final allAssets = _allMockAssets();
+
+    switch (category ?? AssetFilterCategory.trending) {
+      case AssetFilterCategory.trending:
+        return List<AssetModel>.from(allAssets);
       case AssetFilterCategory.gainers:
         return allAssets.where((a) => a.changePercentage > 0).toList()
           ..sort((a, b) => b.changePercentage.compareTo(a.changePercentage));
@@ -133,91 +100,130 @@ class MockDashboardDataSource implements DashboardDataSource {
         return allAssets.where((a) => a.changePercentage < 0).toList()
           ..sort((a, b) => a.changePercentage.compareTo(b.changePercentage));
       case AssetFilterCategory.newCoin:
-        return allAssets.take(3).toList();
-      default:
-        return allAssets;
+        return allAssets.take(2).toList();
     }
   }
 
   @override
-  Future<List<ActivityModel>> getRecentActivities({
-    int page = 0,
-    int limit = 20,
+  Future<AssetDetailModel> getAssetDetail(
+    String assetId, {
+    required ChartTimeframe timeframe,
   }) async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    final now = DateTime.now();
+    await Future.delayed(const Duration(milliseconds: 450));
 
+    final assets = _allMockAssets();
+    final index = assets.indexWhere((a) => a.id == assetId);
+    if (index < 0) {
+      throw StateError('Unknown asset id: $assetId');
+    }
+    final asset = assets[index];
+    final candles = _buildCandles(asset, timeframe);
+
+    double minY = double.infinity;
+    double maxY = double.negativeInfinity;
+    for (final c in candles) {
+      if (c.low < minY) minY = c.low;
+      if (c.high > maxY) maxY = c.high;
+    }
+    final span = (maxY - minY).abs();
+    final pad = span < 1e-6 ? asset.price * 0.02 : span * 0.06;
+    final chartMin = minY - pad;
+    final chartMax = maxY + pad;
+
+    final chartRangeStart = candles.first.time;
+    final chartRangeEnd = candles.last.time;
+
+    final totalAssetValue = asset.price * 5.42;
+    final detailStats = _detailStatsFor(asset);
+    final aboutText = _aboutForAsset(asset);
+
+    return AssetDetailModel(
+      asset: asset,
+      candles: candles,
+      chartMin: chartMin,
+      chartMax: chartMax,
+      chartRangeStart: chartRangeStart,
+      chartRangeEnd: chartRangeEnd,
+      totalAssetValue: totalAssetValue,
+      detailStats: detailStats,
+      aboutText: aboutText,
+    );
+  }
+
+  List<Candlestick> _buildCandles(AssetModel asset, ChartTimeframe tf) {
+    final seed = asset.id.hashCode + tf.index * 997;
+    final rnd = Random(seed);
+    final (count, spanDays) = switch (tf) {
+      ChartTimeframe.oneDay => (24, 1),
+      ChartTimeframe.oneWeek => (28, 7),
+      ChartTimeframe.oneMonth => (30, 30),
+      ChartTimeframe.threeMonths => (48, 90),
+      ChartTimeframe.other => (16, 14),
+    };
+
+    final end = DateTime.now();
+    final start = end.subtract(Duration(days: spanDays));
+    final startMs = start.millisecondsSinceEpoch;
+    final endMs = end.millisecondsSinceEpoch;
+    final rangeMs = (endMs - startMs).clamp(1, 1 << 62);
+
+    final candles = <Candlestick>[];
+    double lastClose = asset.price * (0.94 + rnd.nextDouble() * 0.08);
+
+    for (int i = 0; i < count; i++) {
+      final frac = count <= 1 ? 1.0 : i / (count - 1);
+      final t = DateTime.fromMillisecondsSinceEpoch(
+        (startMs + rangeMs * frac).round(),
+      );
+
+      final drift = (rnd.nextDouble() - 0.5) * asset.price * 0.035;
+      final open = lastClose;
+      var close = open + drift;
+      final band = asset.price * 0.12;
+      close = close.clamp(asset.price - band, asset.price + band);
+
+      final bodyHigh = max(open, close);
+      final bodyLow = min(open, close);
+      final high = bodyHigh + rnd.nextDouble() * asset.price * 0.012;
+      final low = bodyLow - rnd.nextDouble() * asset.price * 0.012;
+
+      candles.add(
+        Candlestick(
+          time: t,
+          open: open,
+          high: high,
+          low: low,
+          close: close,
+        ),
+      );
+      lastClose = close;
+    }
+
+    return candles;
+  }
+
+  List<DetailStatRow> _detailStatsFor(AssetModel asset) {
+    final cap = CurrencyFormatter.formatRupiah(asset.price * 12_400);
+    final vol = CurrencyFormatter.formatRupiah(asset.price * 920);
     return [
-      ActivityModel(
-        id: '1',
-        title: 'Bought Bitcoin',
-        description: 'Market order executed',
-        amount: 500000,
-        timestamp: now.subtract(const Duration(minutes: 30)),
-        type: ActivityType.buy,
-        assetTicker: 'BTC',
-      ),
-      ActivityModel(
-        id: '2',
-        title: 'Sold Ethereum',
-        description: 'Limit order filled',
-        amount: 250000,
-        timestamp: now.subtract(const Duration(hours: 2)),
-        type: ActivityType.sell,
-        assetTicker: 'ETH',
-      ),
-      ActivityModel(
-        id: '3',
-        title: 'Deposit',
-        description: 'Bank transfer received',
-        amount: 1000000,
-        timestamp: now.subtract(const Duration(hours: 5)),
-        type: ActivityType.deposit,
-      ),
-      ActivityModel(
-        id: '4',
-        title: 'Staking Reward',
-        description: 'SOL staking reward',
-        amount: 15000,
-        timestamp: now.subtract(const Duration(days: 1)),
-        type: ActivityType.reward,
-        assetTicker: 'SOL',
-      ),
-      ActivityModel(
-        id: '5',
-        title: 'Bought Cardano',
-        description: 'Market order executed',
-        amount: 100000,
-        timestamp: now.subtract(const Duration(days: 1, hours: 4)),
-        type: ActivityType.buy,
-        assetTicker: 'ADA',
-      ),
-      ActivityModel(
-        id: '6',
-        title: 'Withdrawal',
-        description: 'To external wallet',
-        amount: 300000,
-        timestamp: now.subtract(const Duration(days: 2)),
-        type: ActivityType.withdraw,
-      ),
-      ActivityModel(
-        id: '7',
-        title: 'Bought Ripple',
-        description: 'Market order executed',
-        amount: 75000,
-        timestamp: now.subtract(const Duration(days: 3)),
-        type: ActivityType.buy,
-        assetTicker: 'XRP',
-      ),
-      ActivityModel(
-        id: '8',
-        title: 'Referral Reward',
-        description: 'Referral bonus credited',
-        amount: 50000,
-        timestamp: now.subtract(const Duration(days: 4)),
-        type: ActivityType.reward,
+      DetailStatRow(label: 'Market cap', value: cap),
+      DetailStatRow(label: 'Volume (24h)', value: vol),
+      DetailStatRow(label: 'Circulating supply', value: '52,5B ${asset.ticker}'),
+      DetailStatRow(
+        label: 'All-time high',
+        value: CurrencyFormatter.formatRupiah(asset.price * 1.18),
       ),
     ];
+  }
+
+  String _aboutForAsset(AssetModel asset) {
+    if (asset.ticker == 'XRP') {
+      return 'XRP is the native digital asset of the XRP Ledger, an open-source '
+          'blockchain engineered for fast, low-cost settlement. Ripple uses XRP '
+          'in cross-border liquidity products; prices shown are illustrative mock data.';
+    }
+    return '${asset.name} (${asset.ticker}) is a digital asset you can trade on '
+        'this platform. The information on this screen is mock data for demonstration.';
   }
 
   @override
@@ -396,6 +402,45 @@ class MockDashboardDataSource implements DashboardDataSource {
       minValue: minVal,
       maxValue: maxVal,
     );
+  }
+
+  @override
+  Future<List<NewsArticleModel>> getNews() async {
+    await Future.delayed(const Duration(milliseconds: 400));
+    return [
+      NewsArticleModel(
+        id: 'news-1',
+        title: 'Rally Bitcoin Belum Selesai, Target Berikutnya \$150 Ribu',
+        imageUrl: 'assets/images/bitcoin_news.png',
+        badgeLabel: 'ACADEMY',
+        imageCaption: 'Analis: Rally Bitcoin Belum Selesai,',
+        imageCaptionLine2: r'Target Berikutnya $150 Ribu',
+        publishedAt: DateTime(2025, 9, 15),
+      ),
+      NewsArticleModel(
+        id: 'news-2',
+        title: 'INDODAX Market Signal',
+        imageUrl: 'assets/images/bull_image.png',
+        imageCaption: 'Market outlook minggu ini',
+        imageCaptionLine2: 'Fokus pada volatilitas ETH',
+        publishedAt: DateTime(2025, 9, 12),
+      ),
+      NewsArticleModel(
+        id: 'news-3',
+        title: 'Regulasi Kripto Indonesia: PDNS dan Aset Digital',
+        imageUrl: 'https://picsum.photos/seed/id3/400/225',
+        imageCaption: 'Update regulasi aset kripto',
+        publishedAt: DateTime(2025, 9, 8),
+      ),
+      NewsArticleModel(
+        id: 'news-4',
+        title: 'Stablecoin dan Adopsi Institusi di Asia Tenggara',
+        imageUrl: 'https://picsum.photos/seed/sea4/400/225',
+        imageCaption: 'Tren adoption 2025',
+        imageCaptionLine2: 'Institusi menambah eksposur',
+        publishedAt: DateTime(2025, 9, 3),
+      ),
+    ];
   }
 
   List<double> _generateSparkline(bool uptrend) {

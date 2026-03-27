@@ -6,13 +6,19 @@ class AppColors {
   static const Color primary = Color(
     0xFF00B5D1,
   ); // Keeping bright teal for buttons
+  /// Teal for selected filter chips (outline + label), matches product mock.
+  static const Color filterChipSelected = Color(0xFF26B0B8);
   static const Color primaryDark = Color(0xFF0091A8);
   static const Color primaryLight = Color(0xFF4DD9EC);
 
-  // Gradient colors for header (#111729 and #14769e)
+  // Gradient colors for header (#111729 and #14769e) — Pro dashboard header
   static const Color headerGradientStart = Color(0xFF111729);
   static const Color headerGradientMid = Color(0xFF124663); // Blend
   static const Color headerGradientEnd = Color(0xFF14769E);
+
+  /// Lite dashboard header vertical gradient (top → bottom)
+  static const Color liteHeaderGradientTop = Color(0xFF0CC3E7);
+  static const Color liteHeaderGradientBottom = Color(0xFF189BCC);
 
   // Semantic colors
   static const Color positive = Color(0xFF00C08B);

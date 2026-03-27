@@ -100,7 +100,7 @@ class DashboardSkeleton extends StatelessWidget {
             const SizedBox(height: AppSpacing.lg),
             // Asset list skeleton
             ...List.generate(
-              5,
+              4,
               (_) => Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.xl,
@@ -173,6 +173,82 @@ class DashboardSkeleton extends StatelessWidget {
                       ],
                     ),
                   ],
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xxl),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    width: 80,
+                    height: 22,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  Container(
+                    width: 56,
+                    height: 18,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            SizedBox(
+              height: 268,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                children: List.generate(
+                  3,
+                  (i) => Padding(
+                    padding: EdgeInsets.only(
+                      right: i < 2 ? AppSpacing.md : 0,
+                    ),
+                    child: SizedBox(
+                      width: 280,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            height: 180,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius:
+                                  BorderRadius.circular(AppRadius.lg),
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          Container(
+                            height: 14,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.xs),
+                          Container(
+                            height: 12,
+                            width: 80,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),

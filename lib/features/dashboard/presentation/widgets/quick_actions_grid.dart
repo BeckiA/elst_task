@@ -1,5 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import '../../../../core/theme/app_theme.dart';
+
+enum QuickActionsLayout {
+  /// Deposit-skipping row, “Lainnya”, expandable grid (Pro header).
+  standard,
+
+  /// Single row of four actions, glass-style tiles (Lite header).
+  liteFixedRow,
+}
 
 class QuickActionItem {
   final IconData icon;
@@ -15,8 +24,13 @@ class QuickActionItem {
 
 class QuickActionsGrid extends StatefulWidget {
   final List<QuickActionItem> actions;
+  final QuickActionsLayout layout;
 
-  const QuickActionsGrid({super.key, required this.actions});
+  const QuickActionsGrid({
+    super.key,
+    required this.actions,
+    this.layout = QuickActionsLayout.standard,
+  });
 
   @override
   State<QuickActionsGrid> createState() => _QuickActionsGridState();
@@ -27,8 +41,32 @@ class _QuickActionsGridState extends State<QuickActionsGrid> {
 
   @override
   Widget build(BuildContext context) {
-    // In compact mode, show actions skipping the first one (Deposit),
-    // and replace the 4th with 'Lainnya'
+    if (widget.layout == QuickActionsLayout.liteFixedRow) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: widget.actions
+                  .map(
+                    (action) => Expanded(
+                      child: _QuickActionButton(
+                        item: action,
+                        glassStrong: true,
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+            const SizedBox(height: AppSpacing.xxl),
+          ],
+        ),
+      );
+    }
+
     final List<QuickActionItem> displayActions = _isExpanded
         ? widget.actions
         : [
@@ -49,7 +87,11 @@ class _QuickActionsGridState extends State<QuickActionsGrid> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: displayActions
                 .take(4)
-                .map((action) => Expanded(child: _QuickActionButton(item: action)))
+                .map(
+                  (action) => Expanded(
+                    child: _QuickActionButton(item: action),
+                  ),
+                )
                 .toList(),
           ),
           if (_isExpanded && widget.actions.length > 4) ...[
@@ -60,7 +102,11 @@ class _QuickActionsGridState extends State<QuickActionsGrid> {
               children: widget.actions
                   .skip(4)
                   .take(4)
-                  .map((action) => Expanded(child: _QuickActionButton(item: action)))
+                  .map(
+                    (action) => Expanded(
+                      child: _QuickActionButton(item: action),
+                    ),
+                  )
                   .toList(),
             ),
           ],
@@ -94,7 +140,7 @@ class _QuickActionsGridState extends State<QuickActionsGrid> {
           ),
           SizedBox(width: AppSpacing.xs),
           Icon(
-            Icons.keyboard_arrow_up_rounded,
+            LucideIcons.chevronUp,
             color: Colors.white70,
             size: 18,
           ),
@@ -106,8 +152,12 @@ class _QuickActionsGridState extends State<QuickActionsGrid> {
 
 class _QuickActionButton extends StatefulWidget {
   final QuickActionItem item;
+  final bool glassStrong;
 
-  const _QuickActionButton({required this.item});
+  const _QuickActionButton({
+    required this.item,
+    this.glassStrong = false,
+  });
 
   @override
   State<_QuickActionButton> createState() => _QuickActionButtonState();
@@ -138,6 +188,19 @@ class _QuickActionButtonState extends State<_QuickActionButton>
 
   @override
   Widget build(BuildContext context) {
+    final boxDecoration = widget.glassStrong
+        ? BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.28),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.4),
+            ),
+          )
+        : BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(16),
+          );
+
     return GestureDetector(
       onTapDown: (_) => _controller.forward(),
       onTapUp: (_) {
@@ -153,10 +216,7 @@ class _QuickActionButtonState extends State<_QuickActionButton>
             Container(
               width: 52,
               height: 52,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(16),
-              ),
+              decoration: boxDecoration,
               child: Icon(
                 widget.item.icon,
                 color: Colors.white,
@@ -167,7 +227,7 @@ class _QuickActionButtonState extends State<_QuickActionButton>
             Text(
               widget.item.label,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 12,
                 fontWeight: FontWeight.w500,

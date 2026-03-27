@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../domain/value_objects/dashboard_view_mode.dart';
 import '../../domain/value_objects/filter_values.dart';
 
 abstract class DashboardEvent extends Equatable {
@@ -36,4 +37,13 @@ class ChangeTimeRange extends DashboardEvent {
 
 class ToggleBalanceVisibility extends DashboardEvent {
   const ToggleBalanceVisibility();
+}
+
+class SetDashboardViewMode extends DashboardEvent {
+  final DashboardViewMode mode;
+
+  const SetDashboardViewMode(this.mode);
+
+  @override
+  List<Object?> get props => [mode];
 }

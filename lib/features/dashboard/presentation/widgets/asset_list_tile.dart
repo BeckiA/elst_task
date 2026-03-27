@@ -4,16 +4,15 @@ import 'package:fl_chart/fl_chart.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../domain/entities/asset.dart';
+import '../helpers/crypto_asset_helper.dart';
 
 class AssetListTile extends StatelessWidget {
   final Asset asset;
-  final int index;
   final VoidCallback? onTap;
 
   const AssetListTile({
     super.key,
     required this.asset,
-    required this.index,
     this.onTap,
   });
 
@@ -43,38 +42,7 @@ class AssetListTile extends StatelessWidget {
   }
 
   Widget _buildAssetIcon() {
-    return Container(
-      width: 44,
-      height: 44,
-      decoration: BoxDecoration(
-        color: _getAssetColor().withOpacity(0.12),
-        shape: BoxShape.circle,
-      ),
-      child: Center(
-        child: Text(
-          asset.ticker.substring(0, asset.ticker.length.clamp(0, 2)),
-          style: TextStyle(
-            color: _getAssetColor(),
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Color _getAssetColor() {
-    final colors = [
-      const Color(0xFFF7931A), // Bitcoin gold
-      const Color(0xFF627EEA), // Ethereum blue
-      const Color(0xFF14F195), // Solana green
-      const Color(0xFF0033AD), // Cardano blue
-      const Color(0xFF8247E5), // Polygon purple
-      const Color(0xFF00AAE4), // Ripple blue
-      const Color(0xFFC2A633), // Doge gold
-      const Color(0xFFE84142), // Avalanche red
-    ];
-    return colors[index % colors.length];
+    return CryptoAssetHelper.cryptoIcon(asset.ticker);
   }
 
   Widget _buildAssetInfo() {

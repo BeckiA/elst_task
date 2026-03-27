@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../domain/value_objects/dashboard_view_mode.dart';
 
 class PromoBanner extends StatelessWidget {
   final String title;
   final String subtitle;
   final String actionText;
   final VoidCallback? onAction;
+  final DashboardViewMode viewMode;
 
   const PromoBanner({
     super.key,
@@ -13,7 +15,16 @@ class PromoBanner extends StatelessWidget {
     required this.subtitle,
     required this.actionText,
     this.onAction,
+    required this.viewMode,
   });
+
+  Color get _bridgeBandColor => viewMode == DashboardViewMode.lite
+      ? AppColors.liteHeaderGradientBottom
+      : AppColors.headerGradientEnd;
+
+  Color get _ctaBackground => viewMode == DashboardViewMode.lite
+      ? AppColors.liteHeaderGradientTop
+      : AppColors.primary;
 
   @override
   Widget build(BuildContext context) {
@@ -21,50 +32,41 @@ class PromoBanner extends StatelessWidget {
       alignment: Alignment.topCenter,
       clipBehavior: Clip.none,
       children: [
-        // Layer 0: The blue background completing the header
         Container(
           height: 80,
           width: double.infinity,
-          decoration: const BoxDecoration(
-            color: AppColors.headerGradientEnd,
-            borderRadius: BorderRadius.only(
+          decoration: BoxDecoration(
+            color: _bridgeBandColor,
+            borderRadius: const BorderRadius.only(
               bottomLeft: Radius.circular(32),
               bottomRight: Radius.circular(32),
             ),
           ),
         ),
-
-        // Layer 1: Back translucent card
         Positioned(
           top: 16,
           left: AppSpacing.xl * 1.5,
           right: AppSpacing.xl * 1.5,
-          bottom: 24, // keep it above the bottom of the main card
+          bottom: 24,
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(
-                0.2,
-              ), // looks like frosted glass against the blue
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(24),
             ),
           ),
         ),
-
-        // Layer 2: Middle translucent card
         Positioned(
           top: 24,
           left: AppSpacing.lg * 1.5,
           right: AppSpacing.lg * 1.5,
-          bottom: 12, // keep it above the bottom of the main card
+          bottom: 12,
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.5),
+              color: Colors.white.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(24),
             ),
           ),
         ),
-
-        // Layer 3: Main solid card
         Container(
           margin: const EdgeInsets.only(
             top: 32,
@@ -73,14 +75,14 @@ class PromoBanner extends StatelessWidget {
           ),
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.xl,
-            vertical: 28, // Increased vertical padding for more height
+            vertical: 28,
           ),
           decoration: BoxDecoration(
-            color: AppColors.surfaceVariant, // Very pale tint
+            color: AppColors.surfaceVariant,
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: Colors.black.withValues(alpha: 0.04),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -115,7 +117,7 @@ class PromoBanner extends StatelessWidget {
               ElevatedButton(
                 onPressed: onAction ?? () {},
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: _ctaBackground,
                   foregroundColor: Colors.white,
                   elevation: 0,
                   padding: const EdgeInsets.symmetric(

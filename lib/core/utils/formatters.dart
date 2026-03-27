@@ -50,4 +50,13 @@ class DateFormatter {
       return DateFormat('MMM d').format(dateTime);
     }
   }
+
+  static String formatShortDate(DateTime date) {
+    return DateFormat('d/M/yyyy').format(date);
+  }
+
+  /// Short axis label for charts (e.g. "Jun 12").
+  static String formatChartAxisDay(DateTime date) {
+    return DateFormat('MMM d', 'en_US').format(date);
+  }
 }

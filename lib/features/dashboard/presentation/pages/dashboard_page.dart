@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../../core/theme/app_theme.dart';
+import '../../domain/value_objects/dashboard_view_mode.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
@@ -11,9 +13,10 @@ import '../widgets/balance_summary_cards.dart';
 import '../widgets/promo_banner.dart';
 import '../widgets/asset_filter_chips.dart';
 import '../widgets/asset_list_tile.dart';
-import '../widgets/activity_list_section.dart';
 import '../widgets/dashboard_skeleton.dart';
 import '../widgets/dashboard_bottom_nav_bar.dart';
+import '../widgets/dashboard_news_section.dart';
+import 'asset_detail_page.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -38,6 +41,8 @@ class _DashboardPageState extends State<DashboardPage>
   late List<Animation<Offset>> _staggerSlideAnimations;
 
   static const int _sectionCount = 6;
+  static const double _floatingNavReserve =
+      72 + AppSpacing.md * 2; // pill + vertical padding
 
   @override
   void initState() {
@@ -136,12 +141,6 @@ class _DashboardPageState extends State<DashboardPage>
           return const SizedBox.shrink();
         },
       ),
-      bottomNavigationBar: DashboardBottomNavBar(
-        currentIndex: _currentNavIndex,
-        onTap: (index) {
-          setState(() => _currentNavIndex = index);
-        },
-      ),
     );
   }
 
@@ -160,7 +159,7 @@ class _DashboardPageState extends State<DashboardPage>
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                Icons.error_outline_rounded,
+                LucideIcons.alertCircle,
                 color: AppColors.negative,
                 size: 40,
               ),
@@ -185,7 +184,7 @@ class _DashboardPageState extends State<DashboardPage>
               onPressed: () {
                 context.read<DashboardBloc>().add(const LoadDashboard());
               },
-              icon: const Icon(Icons.refresh_rounded),
+              icon: const Icon(LucideIcons.refreshCcw),
               label: const Text('Try Again'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
@@ -205,182 +204,240 @@ class _DashboardPageState extends State<DashboardPage>
     );
   }
 
+  List<QuickActionItem> _quickActionsForMode(DashboardViewMode mode) {
+    switch (mode) {
+      case DashboardViewMode.lite:
+        return [
+          const QuickActionItem(
+            icon: LucideIcons.graduationCap,
+            label: 'Academy',
+          ),
+          const QuickActionItem(
+            icon: LucideIcons.calendarCheck,
+            label: 'Recurring',
+          ),
+          const QuickActionItem(
+            icon: LucideIcons.headphones,
+            label: 'Live Chat',
+          ),
+          const QuickActionItem(
+            icon: LucideIcons.messagesSquare,
+            label: 'Chat Room',
+          ),
+        ];
+      case DashboardViewMode.pro:
+        return [
+          const QuickActionItem(icon: LucideIcons.wallet, label: 'Deposit'),
+          const QuickActionItem(
+            icon: Icons.monetization_on_outlined,
+            label: 'Earn',
+          ),
+          const QuickActionItem(
+            icon: LucideIcons.graduationCap,
+            label: 'Academy',
+          ),
+          const QuickActionItem(icon: LucideIcons.calendar, label: 'Recurring'),
+          const QuickActionItem(
+            icon: Icons.receipt_long_rounded,
+            label: 'History',
+          ),
+          const QuickActionItem(icon: LucideIcons.users, label: 'Referral'),
+          const QuickActionItem(
+            icon: LucideIcons.headphones,
+            label: 'Live Chat',
+          ),
+          const QuickActionItem(
+            icon: LucideIcons.messagesSquare,
+            label: 'Chat Room',
+          ),
+        ];
+    }
+  }
+
   Widget _buildLoadedDashboard(DashboardLoaded state) {
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: SlideTransition(
-        position: _slideAnimation,
-        child: RefreshIndicator(
-          onRefresh: () async {
-            context.read<DashboardBloc>().add(const RefreshDashboard());
-            await Future.delayed(const Duration(seconds: 1));
-          },
-          color: AppColors.primary,
-          child: CustomScrollView(
-            physics: const BouncingScrollPhysics(
-              parent: AlwaysScrollableScrollPhysics(),
-            ),
-            slivers: [
-              // Portfolio Header with Quick Actions
-              SliverToBoxAdapter(
-                child: _staggeredSection(
-                  0,
-                  PortfolioHeader(
-                    stats: state.stats,
-                    chartData: state.chartData,
-                    isBalanceVisible: state.isBalanceVisible,
-                    onToggleVisibility: () {
-                      context.read<DashboardBloc>().add(
-                        const ToggleBalanceVisibility(),
-                      );
-                    },
-                    child: QuickActionsGrid(
-                      actions: [
-                        QuickActionItem(
-                          icon: Icons.account_balance_wallet_outlined,
-                          label: 'Deposit',
-                        ),
-                        QuickActionItem(
-                          icon: Icons.monetization_on_outlined,
-                          label: 'Earn',
-                        ),
-                        QuickActionItem(
-                          icon: Icons.school_outlined,
-                          label: 'Academy',
-                        ),
-                        QuickActionItem(
-                          icon: Icons.calendar_today_rounded,
-                          label: 'Recurring',
-                        ),
-                        QuickActionItem(
-                          icon: Icons.receipt_long_rounded,
-                          label: 'History',
-                        ),
-                        QuickActionItem(
-                          icon: Icons.people_outline_rounded,
-                          label: 'Referral',
-                        ),
-                        QuickActionItem(
-                          icon: Icons.headset_mic_outlined,
-                          label: 'Live Chat',
-                        ),
-                        QuickActionItem(
-                          icon: Icons.chat_bubble_outline_rounded,
-                          label: 'Chat Room',
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+    final bottomSafe = MediaQuery.paddingOf(context).bottom;
+    final scrollBottomPad = bottomSafe + _floatingNavReserve + AppSpacing.xl;
 
-              // Promo Banner (handles its own overlapping)
-              SliverToBoxAdapter(
-                child: _staggeredSection(
-                  1,
-                  const PromoBanner(
-                    title: 'Get a reward of Rp3,000,000',
-                    subtitle: 'by reviewing INDODAX on the App Store',
-                    actionText: 'Try Now',
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Positioned.fill(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: SlideTransition(
+              position: _slideAnimation,
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  context.read<DashboardBloc>().add(const RefreshDashboard());
+                  await Future.delayed(const Duration(seconds: 1));
+                },
+                color: AppColors.primary,
+                child: CustomScrollView(
+                  physics: const BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics(),
                   ),
-                ),
-              ),
-
-              // Balance Cards
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: AppSpacing.xxl),
-                  child: _staggeredSection(
-                    2,
-                    BalanceSummaryCards(
-                      cryptoBalance: state.stats.cryptoBalance,
-                      cashBalance: state.stats.cashBalance,
-                      isVisible: state.isBalanceVisible,
-                    ),
-                  ),
-                ),
-              ),
-
-              // Asset List Header + Filters
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: AppSpacing.xxl),
-                  child: _staggeredSection(
-                    3,
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.xl,
+                  slivers: [
+                    // Portfolio Header with Quick Actions
+                    SliverToBoxAdapter(
+                      child: _staggeredSection(
+                        0,
+                        PortfolioHeader(
+                          stats: state.stats,
+                          chartData: state.chartData,
+                          isBalanceVisible: state.isBalanceVisible,
+                          onToggleVisibility: () {
+                            context.read<DashboardBloc>().add(
+                              const ToggleBalanceVisibility(),
+                            );
+                          },
+                          viewMode: state.viewMode,
+                          onViewModeChanged: (mode) {
+                            context.read<DashboardBloc>().add(
+                              SetDashboardViewMode(mode),
+                            );
+                          },
+                          onTopUp: () {},
+                          child: QuickActionsGrid(
+                            layout: state.viewMode == DashboardViewMode.lite
+                                ? QuickActionsLayout.liteFixedRow
+                                : QuickActionsLayout.standard,
+                            actions: _quickActionsForMode(state.viewMode),
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        ),
+                      ),
+                    ),
+
+                    // Promo Banner (handles its own overlapping)
+                    SliverToBoxAdapter(
+                      child: _staggeredSection(
+                        1,
+                        PromoBanner(
+                          title: 'Get a reward of Rp3,000,000',
+                          subtitle: 'by reviewing INDODAX on the App Store',
+                          actionText: 'Try Now',
+                          viewMode: state.viewMode,
+                        ),
+                      ),
+                    ),
+
+                    // Balance Cards
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: AppSpacing.xxl),
+                        child: _staggeredSection(
+                          2,
+                          BalanceSummaryCards(
+                            cryptoBalance: state.stats.cryptoBalance,
+                            cashBalance: state.stats.cashBalance,
+                            isVisible: state.isBalanceVisible,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Asset List Header + Filters
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: AppSpacing.xxl),
+                        child: _staggeredSection(
+                          3,
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                'Asset List',
-                                style: TextStyle(
-                                  color: AppColors.textPrimary,
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w700,
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.xl,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Asset List',
+                                      style: TextStyle(
+                                        color: AppColors.textPrimary,
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {},
+                                      child: Text(
+                                        'See All',
+                                        style: TextStyle(
+                                          color: AppColors.textSecondary,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              TextButton(
-                                onPressed: () {},
-                                child: Text(
-                                  'See All',
-                                  style: TextStyle(
-                                    color: AppColors.textSecondary,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
+                              const SizedBox(height: AppSpacing.sm),
+                              AssetFilterChips(
+                                selectedCategory: state.selectedCategory,
+                                onCategorySelected: (category) {
+                                  context.read<DashboardBloc>().add(
+                                    FilterAssets(category),
+                                  );
+                                },
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(height: AppSpacing.sm),
-                        AssetFilterChips(
-                          selectedCategory: state.selectedCategory,
-                          onCategorySelected: (category) {
-                            context.read<DashboardBloc>().add(
-                              FilterAssets(category),
-                            );
-                          },
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
+
+                    // Asset List
+                    SliverList(
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final asset = state.assets[index];
+                        return _staggeredSection(
+                          4,
+                          AssetListTile(
+                            asset: asset,
+                            onTap: () {
+                              Navigator.of(context).push(
+                                AssetDetailPage.route(asset),
+                              );
+                            },
+                          ),
+                        );
+                      }, childCount: state.assets.length),
+                    ),
+
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: AppSpacing.xxl),
+                        child: _staggeredSection(
+                          5,
+                          DashboardNewsSection(articles: state.news),
+                        ),
+                      ),
+                    ),
+
+                    SliverToBoxAdapter(
+                      child: SizedBox(height: scrollBottomPad),
+                    ),
+                  ],
                 ),
               ),
-
-              // Asset List
-              SliverList(
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  final asset = state.assets[index];
-                  return _staggeredSection(
-                    4,
-                    AssetListTile(asset: asset, index: index, onTap: () {}),
-                  );
-                }, childCount: state.assets.length),
-              ),
-
-              // Activity List
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: AppSpacing.xxl),
-                  child: ActivityListSection(activities: state.activities),
-                ),
-              ),
-
-              // Bottom spacing
-              const SliverToBoxAdapter(
-                child: SizedBox(height: AppSpacing.xxxl),
-              ),
-            ],
+            ),
           ),
         ),
-      ),
+        Positioned(
+          left: AppSpacing.xl,
+          right: AppSpacing.xl,
+          bottom: bottomSafe + AppSpacing.md,
+          child: DashboardBottomNavBar(
+            currentIndex: _currentNavIndex,
+            onTap: (index) {
+              setState(() => _currentNavIndex = index);
+            },
+          ),
+        ),
+      ],
     );
   }
 

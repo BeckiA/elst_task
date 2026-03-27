@@ -7,8 +7,9 @@ import 'package:elst_dashboard/features/dashboard/domain/entities/dashboard_stat
 import 'package:elst_dashboard/features/dashboard/domain/entities/portfolio_chart_data.dart';
 import 'package:elst_dashboard/features/dashboard/domain/usecases/get_dashboard_stats.dart';
 import 'package:elst_dashboard/features/dashboard/domain/usecases/get_assets.dart';
-import 'package:elst_dashboard/features/dashboard/domain/usecases/get_recent_activities.dart';
+import 'package:elst_dashboard/features/dashboard/domain/usecases/get_news.dart';
 import 'package:elst_dashboard/features/dashboard/domain/usecases/get_portfolio_chart_data.dart';
+import 'package:elst_dashboard/features/dashboard/domain/value_objects/dashboard_view_mode.dart';
 import 'package:elst_dashboard/features/dashboard/domain/value_objects/filter_values.dart';
 import 'package:elst_dashboard/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:elst_dashboard/features/dashboard/presentation/bloc/dashboard_event.dart';
@@ -25,8 +26,8 @@ void main() {
     bloc = DashboardBloc(
       getDashboardStats: GetDashboardStats(repository),
       getAssets: GetAssets(repository),
-      getRecentActivities: GetRecentActivities(repository),
       getPortfolioChartData: GetPortfolioChartData(repository),
+      getNews: GetNews(repository),
     );
   });
 
@@ -48,10 +49,14 @@ void main() {
         isA<DashboardLoaded>()
             .having((s) => s.stats.portfolioValue, 'portfolioValue', 8040215)
             .having((s) => s.assets.length, 'assets count', greaterThan(0))
-            .having(
-                (s) => s.activities.length, 'activities count', greaterThan(0))
             .having((s) => s.chartData.points.length, 'chart points',
-                greaterThan(0)),
+                greaterThan(0))
+            .having(
+              (s) => s.viewMode,
+              'viewMode',
+              DashboardViewMode.lite,
+            )
+            .having((s) => s.news.length, 'news count', 4),
       ],
     );
 
@@ -61,7 +66,6 @@ void main() {
       seed: () => DashboardLoaded(
         stats: const DashboardStatsStub(),
         assets: const [],
-        activities: const [],
         chartData: const PortfolioChartDataStub(),
       ),
       act: (bloc) => bloc.add(const FilterAssets(AssetFilterCategory.gainers)),
@@ -80,7 +84,6 @@ void main() {
       seed: () => DashboardLoaded(
         stats: const DashboardStatsStub(),
         assets: const [],
-        activities: const [],
         chartData: const PortfolioChartDataStub(),
         isBalanceVisible: true,
       ),
@@ -97,13 +100,54 @@ void main() {
       seed: () => DashboardLoaded(
         stats: const DashboardStatsStub(),
         assets: const [],
-        activities: const [],
         chartData: const PortfolioChartDataStub(),
       ),
       act: (bloc) => bloc.add(const RefreshDashboard()),
       expect: () => [
         isA<DashboardLoaded>()
             .having((s) => s.stats.portfolioValue, 'portfolioValue', 8040215),
+      ],
+    );
+
+    blocTest<DashboardBloc, DashboardState>(
+      'preserves viewMode on RefreshDashboard',
+      build: () => bloc,
+      seed: () => DashboardLoaded(
+        stats: const DashboardStatsStub(),
+        assets: const [],
+        chartData: const PortfolioChartDataStub(),
+        viewMode: DashboardViewMode.pro,
+      ),
+      act: (bloc) => bloc.add(const RefreshDashboard()),
+      expect: () => [
+        isA<DashboardLoaded>()
+            .having(
+              (s) => s.viewMode,
+              'viewMode',
+              DashboardViewMode.pro,
+            )
+            .having((s) => s.stats.portfolioValue, 'portfolioValue', 8040215),
+      ],
+    );
+
+    blocTest<DashboardBloc, DashboardState>(
+      'emits DashboardLoaded with updated viewMode when SetDashboardViewMode is added',
+      build: () => bloc,
+      seed: () => DashboardLoaded(
+        stats: const DashboardStatsStub(),
+        assets: const [],
+        chartData: const PortfolioChartDataStub(),
+        viewMode: DashboardViewMode.lite,
+      ),
+      act: (bloc) => bloc.add(
+        const SetDashboardViewMode(DashboardViewMode.pro),
+      ),
+      expect: () => [
+        isA<DashboardLoaded>().having(
+          (s) => s.viewMode,
+          'viewMode',
+          DashboardViewMode.pro,
+        ),
       ],
     );
   });
