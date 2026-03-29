@@ -25,15 +25,18 @@ class AssetCandlestickChart extends StatelessWidget {
     if (candles.isEmpty) {
       return const SizedBox.expand();
     }
-    return CustomPaint(
-      painter: _CandlestickPainter(
-        candles: candles,
-        minY: minY,
-        maxY: maxY,
-        referenceY: referenceY,
-        upColor: AppColors.positive,
-        downColor: AppColors.negative,
-        refColor: AppColors.primary,
+    // CustomPaint with no child defaults to minimum size (~0×0); expand to fill the chart area.
+    return SizedBox.expand(
+      child: CustomPaint(
+        painter: _CandlestickPainter(
+          candles: candles,
+          minY: minY,
+          maxY: maxY,
+          referenceY: referenceY,
+          upColor: AppColors.positive,
+          downColor: AppColors.negative,
+          refColor: AppColors.primary,
+        ),
       ),
     );
   }
@@ -58,6 +61,10 @@ class _CandlestickPainter extends CustomPainter {
   final Color downColor;
   final Color refColor;
 
+  static const double _pad = 4;
+  static const double _wickWidth = 2.25;
+  static const double _bodyWidthFactor = 0.68;
+
   double _yOf(double v, double chartH, double pad) {
     if (maxY <= minY) return pad + chartH / 2;
     return pad + chartH * (1 - (v - minY) / (maxY - minY));
@@ -65,52 +72,67 @@ class _CandlestickPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    const pad = 6.0;
-    final chartH = size.height - pad * 2;
-    final chartW = size.width - pad * 2;
+    final chartH = size.height - _pad * 2;
+    final chartW = size.width - _pad * 2;
 
-    final yRef = _yOf(referenceY, chartH, pad);
+    final yRef = _yOf(referenceY, chartH, _pad);
     _drawDashedLine(
       canvas,
-      Offset(pad, yRef),
-      Offset(size.width - pad, yRef),
+      Offset(_pad, yRef),
+      Offset(size.width - _pad, yRef),
       refColor,
     );
 
     final n = candles.length;
     if (n == 0) return;
     final slot = chartW / n;
-    final bodyW = math.max(2.0, slot * 0.5);
+    final bodyW = math.min(
+      math.max(3.5, slot * _bodyWidthFactor),
+      slot * 0.92,
+    );
 
     for (var i = 0; i < n; i++) {
       final c = candles[i];
-      final cx = pad + slot * i + slot / 2;
-      final yHigh = _yOf(c.high, chartH, pad);
-      final yLow = _yOf(c.low, chartH, pad);
-      final yOpen = _yOf(c.open, chartH, pad);
-      final yClose = _yOf(c.close, chartH, pad);
+      final cx = _pad + slot * i + slot / 2;
+      final yHigh = _yOf(c.high, chartH, _pad);
+      final yLow = _yOf(c.low, chartH, _pad);
+      final yOpen = _yOf(c.open, chartH, _pad);
+      final yClose = _yOf(c.close, chartH, _pad);
       final color = c.isUp ? upColor : downColor;
+
       final wick = Paint()
         ..color = color
-        ..strokeWidth = 1.2
-        ..strokeCap = StrokeCap.round;
+        ..strokeWidth = _wickWidth
+        ..strokeCap = StrokeCap.round
+        ..isAntiAlias = true;
       canvas.drawLine(Offset(cx, yHigh), Offset(cx, yLow), wick);
 
       var top = math.min(yOpen, yClose);
       var bottom = math.max(yOpen, yClose);
-      if ((bottom - top) < 1) {
-        bottom = top + 1;
+      final bodyHeight = (bottom - top).abs();
+      if (bodyHeight < 2.5) {
+        final mid = (top + bottom) / 2;
+        top = mid - 1.25;
+        bottom = mid + 1.25;
       }
+
       final rect = Rect.fromLTRB(cx - bodyW / 2, top, cx + bodyW / 2, bottom);
-      canvas.drawRect(rect, Paint()..color = color);
+      final fill = Paint()
+        ..color = color
+        ..isAntiAlias = true;
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(rect, const Radius.circular(1.2)),
+        fill,
+      );
     }
   }
 
   void _drawDashedLine(Canvas canvas, Offset start, Offset end, Color color) {
     final paint = Paint()
       ..color = color
-      ..strokeWidth = 1
-      ..strokeCap = StrokeCap.round;
+      ..strokeWidth = 1.25
+      ..strokeCap = StrokeCap.round
+      ..isAntiAlias = true;
     final dx = end.dx - start.dx;
     final dy = end.dy - start.dy;
     final len = math.sqrt(dx * dx + dy * dy);

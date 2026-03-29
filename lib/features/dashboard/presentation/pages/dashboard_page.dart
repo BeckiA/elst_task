@@ -10,6 +10,7 @@ import '../bloc/dashboard_state.dart';
 import '../widgets/portfolio_header.dart';
 import '../widgets/quick_actions_grid.dart';
 import '../widgets/balance_summary_cards.dart';
+import '../widgets/crypto_spot_price_cards.dart';
 import '../widgets/promo_banner.dart';
 import '../widgets/asset_filter_chips.dart';
 import '../widgets/asset_list_tile.dart';
@@ -320,16 +321,26 @@ class _DashboardPageState extends State<DashboardPage>
                       ),
                     ),
 
-                    // Balance Cards
+                    // Balance Cards (+ Pro spot prices below, same stagger)
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.only(top: AppSpacing.xxl),
                         child: _staggeredSection(
                           2,
-                          BalanceSummaryCards(
-                            cryptoBalance: state.stats.cryptoBalance,
-                            cashBalance: state.stats.cashBalance,
-                            isVisible: state.isBalanceVisible,
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              BalanceSummaryCards(
+                                cryptoBalance: state.stats.cryptoBalance,
+                                cashBalance: state.stats.cashBalance,
+                                isVisible: state.isBalanceVisible,
+                              ),
+                              if (state.viewMode == DashboardViewMode.pro) ...[
+                                const SizedBox(height: AppSpacing.lg),
+                                const CryptoSpotPriceCards(),
+                              ],
+                            ],
                           ),
                         ),
                       ),

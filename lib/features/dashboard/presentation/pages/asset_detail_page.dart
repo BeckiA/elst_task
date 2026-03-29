@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -17,8 +18,15 @@ import '../bloc/asset_detail_event.dart';
 import '../bloc/asset_detail_state.dart';
 import '../helpers/crypto_asset_helper.dart';
 import '../widgets/asset_candlestick_chart.dart';
+import '../widgets/buy_crypto_bottom_sheet.dart';
+import 'confirm_buy_page.dart';
 
-class AssetDetailPage extends StatelessWidget {
+/// Header area (behind transparent app bar + title block) uses this at scroll offset 0,
+/// then lerps to [AppColors.surface] as the user scrolls.
+const Color _kHeaderTopColor = Color(0xFFE5F4FA);
+const double _kHeaderColorScrollExtent = 96;
+
+class AssetDetailPage extends StatefulWidget {
   const AssetDetailPage({super.key});
 
   static Route<void> route(Asset asset) {
@@ -33,11 +41,66 @@ class AssetDetailPage extends StatelessWidget {
   }
 
   @override
+  State<AssetDetailPage> createState() => _AssetDetailPageState();
+}
+
+class _AssetDetailPageState extends State<AssetDetailPage> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() => setState(() {});
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Color _headerSurfaceColor(AssetDetailState state) {
+    if (state is! AssetDetailLoaded) return _kHeaderTopColor;
+    if (!_scrollController.hasClients) return _kHeaderTopColor;
+    final t = (_scrollController.offset / _kHeaderColorScrollExtent)
+        .clamp(0.0, 1.0);
+    return Color.lerp(_kHeaderTopColor, AppColors.surface, t)!;
+  }
+
+  BoxDecoration _headerSectionDecoration(Color topColor) {
+    return BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          topColor,
+          Color.lerp(topColor, AppColors.surface, 0.35)!,
+          AppColors.surface,
+        ],
+        stops: const [0.0, 0.55, 1.0],
+      ),
+    );
+  }
+
+  EdgeInsets _headerSectionPadding(BuildContext context) {
+    return EdgeInsets.fromLTRB(
+      AppSpacing.xl,
+      MediaQuery.paddingOf(context).top + kToolbarHeight,
+      AppSpacing.xl,
+      AppSpacing.lg,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocBuilder<AssetDetailBloc, AssetDetailState>(
       builder: (context, state) {
         final asset = _assetForState(state);
         return Scaffold(
+          extendBodyBehindAppBar: true,
           backgroundColor: AppColors.surface,
           appBar: _appBar(context, state),
           body: asset == null
@@ -60,11 +123,13 @@ class AssetDetailPage extends StatelessWidget {
   PreferredSizeWidget _appBar(BuildContext context, AssetDetailState state) {
     final isFav = state is AssetDetailLoaded && state.isFavorite;
     return AppBar(
-      backgroundColor: AppColors.surface,
+      backgroundColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
+      scrolledUnderElevation: 0,
+      systemOverlayStyle: SystemUiOverlayStyle.dark,
       leading: IconButton(
-        icon: Icon(LucideIcons.arrowLeft, color: AppColors.textPrimary),
+        icon: Icon(LucideIcons.moveLeft, color: AppColors.textPrimary),
         onPressed: () => Navigator.of(context).maybePop(),
       ),
       actions: [
@@ -73,12 +138,12 @@ class AssetDetailPage extends StatelessWidget {
           onPressed: () {},
         ),
         IconButton(
-          icon: Icon(LucideIcons.share2, color: AppColors.textPrimary),
+          icon: Icon(LucideIcons.externalLink, color: AppColors.textPrimary),
           onPressed: () {},
         ),
         IconButton(
           icon: Icon(
-            isFav ? Icons.star_rounded : Icons.star_outline_rounded,
+            isFav ? Icons.star_rounded : LucideIcons.star,
             color: isFav ? AppColors.warning : AppColors.textPrimary,
           ),
           onPressed: () {
@@ -107,13 +172,18 @@ class AssetDetailPage extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+        Container(
+          width: double.infinity,
+          decoration: _headerSectionDecoration(_headerSurfaceColor(state)),
+          padding: _headerSectionPadding(context),
           child: _headerBlock(state.asset),
         ),
         const Expanded(
-          child: Center(
-            child: CircularProgressIndicator(color: AppColors.primary),
+          child: ColoredBox(
+            color: AppColors.surface,
+            child: Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            ),
           ),
         ),
       ],
@@ -121,26 +191,28 @@ class AssetDetailPage extends StatelessWidget {
   }
 
   Widget _errorLayout(BuildContext context, Asset asset, String message) {
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.xxl),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(LucideIcons.alertCircle, color: AppColors.negative, size: 48),
-          const SizedBox(height: AppSpacing.lg),
-          Text(
-            message,
-            textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
-          ),
-          const SizedBox(height: AppSpacing.xl),
-          FilledButton(
-            onPressed: () {
-              context.read<AssetDetailBloc>().add(LoadAssetDetail(asset));
-            },
-            child: const Text('Try again'),
-          ),
-        ],
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.xxl),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(LucideIcons.alertCircle, color: AppColors.negative, size: 48),
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            FilledButton(
+              onPressed: () {
+                context.read<AssetDetailBloc>().add(LoadAssetDetail(asset));
+              },
+              child: const Text('Try again'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -152,25 +224,35 @@ class AssetDetailPage extends StatelessWidget {
     return Stack(
       children: [
         SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(
-            AppSpacing.xl,
-            0,
-            AppSpacing.xl,
-            120 + bottomInset,
-          ),
+          controller: _scrollController,
+          padding: EdgeInsets.only(bottom: 120 + bottomInset),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _headerBlock(d.asset),
-              const SizedBox(height: AppSpacing.lg),
-              _marketTabs(context, state),
-              const SizedBox(height: AppSpacing.lg),
-              if (state.selectedTab == AssetMarketTab.market)
-                _marketSection(context, state)
-              else
-                _placeholderTab(state.selectedTab.label),
-              const SizedBox(height: AppSpacing.xl),
-              _expandableSections(context, state),
+              Container(
+                width: double.infinity,
+                decoration:
+                    _headerSectionDecoration(_headerSurfaceColor(state)),
+                padding: _headerSectionPadding(context),
+                child: _headerBlock(d.asset),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: AppSpacing.lg),
+                    _marketTabs(context, state),
+                    const SizedBox(height: AppSpacing.lg),
+                    if (state.selectedTab == AssetMarketTab.market)
+                      _marketSection(context, state)
+                    else
+                      _placeholderTab(state.selectedTab.label),
+                    const SizedBox(height: AppSpacing.xl),
+                    _expandableSections(context, state),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -178,7 +260,7 @@ class AssetDetailPage extends StatelessWidget {
           left: AppSpacing.xl,
           right: AppSpacing.xl,
           bottom: AppSpacing.lg + bottomInset,
-          child: _buySellRow(context),
+          child: _buySellRow(context, d.asset),
         ),
       ],
     );
@@ -284,7 +366,7 @@ class AssetDetailPage extends StatelessWidget {
             Container(
               height: 220,
               decoration: BoxDecoration(
-                color: AppColors.surfaceVariant,
+                color: AppColors.surface,
                 borderRadius: BorderRadius.circular(AppRadius.lg),
                 border: Border.all(color: AppColors.divider),
               ),
@@ -623,45 +705,97 @@ class AssetDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buySellRow(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: OutlinedButton(
-            onPressed: () {},
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.primary,
-              side: const BorderSide(color: AppColors.primary, width: 1.5),
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.xl),
+  Widget _buySellRow(BuildContext context, Asset asset) {
+    const pillHeight = 45.0;
+    final cardVerticalPadding = AppSpacing.md;
+    final cardOuterRadius = (pillHeight + cardVerticalPadding * 2) / 2;
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: cardVerticalPadding,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.96),
+        borderRadius: BorderRadius.circular(cardOuterRadius),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.07),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: SizedBox(
+              height: pillHeight,
+              child: OutlinedButton(
+                onPressed: () {},
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  side: const BorderSide(color: AppColors.primary, width: 1.5),
+                  padding: EdgeInsets.zero,
+                  minimumSize: const Size(0, pillHeight),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  shape: const StadiumBorder(),
+                ),
+                child: const Text(
+                  'Sell',
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+                ),
               ),
             ),
-            child: const Text(
-              'Sell',
-              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
-            ),
           ),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: FilledButton(
-            onPressed: () {},
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.xl),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: SizedBox(
+              height: pillHeight,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(pillHeight / 2),
+                  gradient: const LinearGradient(
+                    colors: [
+                      AppColors.primaryDark,
+                      AppColors.primary,
+                      AppColors.primaryLight,
+                    ],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () async {
+                      final summary = await showBuyCryptoBottomSheet(
+                        context,
+                        asset: asset,
+                        spotPrice: asset.price,
+                      );
+                      if (!context.mounted || summary == null) return;
+                      await Navigator.of(context).push(
+                        ConfirmBuyPage.route(summary),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(pillHeight / 2),
+                    child: const Center(
+                      child: Text(
+                        'Buy',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
-            child: const Text(
-              'Buy',
-              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
-            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
