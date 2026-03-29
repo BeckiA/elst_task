@@ -3,7 +3,6 @@ import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'dart:math' as math;
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/formatters.dart';
@@ -41,27 +40,12 @@ class _HeaderXWatermark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final barLength = size * 1.05;
     return SizedBox(
       width: size,
       height: size,
-      child: Stack(
-        alignment: Alignment.center,
-        clipBehavior: Clip.none,
-        children: [
-          for (final angle in [math.pi / 4, -math.pi / 4])
-            Transform.rotate(
-              angle: angle,
-              child: Container(
-                width: 42,
-                height: barLength,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(21),
-                ),
-              ),
-            ),
-        ],
+      child: Image.asset(
+        'assets/icons/indodax_logo.png',
+        fit: BoxFit.contain,
       ),
     );
   }

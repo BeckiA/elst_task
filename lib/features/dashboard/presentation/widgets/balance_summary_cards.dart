@@ -49,7 +49,7 @@ class BalanceSummaryCards extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.xl,
-        vertical: AppSpacing.lg,
+        vertical: AppSpacing.xl,
       ),
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -64,13 +64,15 @@ class BalanceSummaryCards extends StatelessWidget {
         ],
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           SizedBox(
             width: 40,
-            height: 40,
-            child: icon is IconData
-                ? Icon(icon, color: iconColor, size: 24)
-                : FaIcon(icon, color: iconColor, size: 24),
+            child: Center(
+              child: icon is IconData
+                  ? Icon(icon, color: iconColor, size: 24)
+                  : FaIcon(icon, color: iconColor, size: 24),
+            ),
           ),
           const SizedBox(width: AppSpacing.md),
           Text(

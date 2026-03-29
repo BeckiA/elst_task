@@ -124,6 +124,10 @@ class _DashboardPageState extends State<DashboardPage>
         listener: (context, state) {
           if (state is DashboardLoaded) {
             _playStaggeredAnimations();
+            if (state.viewMode == DashboardViewMode.lite &&
+                _currentNavIndex > 2) {
+              setState(() => _currentNavIndex = 2);
+            }
           }
         },
         builder: (context, state) {
@@ -442,6 +446,7 @@ class _DashboardPageState extends State<DashboardPage>
           right: AppSpacing.xl,
           bottom: bottomSafe + AppSpacing.md,
           child: DashboardBottomNavBar(
+            viewMode: state.viewMode,
             currentIndex: _currentNavIndex,
             onTap: (index) {
               setState(() => _currentNavIndex = index);
