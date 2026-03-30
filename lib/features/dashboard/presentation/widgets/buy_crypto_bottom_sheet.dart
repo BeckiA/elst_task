@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -384,28 +385,76 @@ class _BuyCryptoBottomSheetState extends State<BuyCryptoBottomSheet> {
                                 child: _PercentPill(
                                   label: '25%',
                                   onTap: () => _applyPercent(0.25),
-                                ),
+                                )
+                                    .animate()
+                                    .fadeIn(
+                                      duration: 650.ms,
+                                      delay: 80.ms,
+                                      curve: Curves.easeOutCubic,
+                                    )
+                                    .slideX(
+                                      begin: 0.22,
+                                      duration: 700.ms,
+                                      delay: 80.ms,
+                                      curve: Curves.easeOutCubic,
+                                    ),
                               ),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: _PercentPill(
                                   label: '50%',
                                   onTap: () => _applyPercent(0.5),
-                                ),
+                                )
+                                    .animate()
+                                    .fadeIn(
+                                      duration: 650.ms,
+                                      delay: 170.ms,
+                                      curve: Curves.easeOutCubic,
+                                    )
+                                    .slideX(
+                                      begin: 0.22,
+                                      duration: 700.ms,
+                                      delay: 170.ms,
+                                      curve: Curves.easeOutCubic,
+                                    ),
                               ),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: _PercentPill(
                                   label: '75%',
                                   onTap: () => _applyPercent(0.75),
-                                ),
+                                )
+                                    .animate()
+                                    .fadeIn(
+                                      duration: 650.ms,
+                                      delay: 260.ms,
+                                      curve: Curves.easeOutCubic,
+                                    )
+                                    .slideX(
+                                      begin: 0.22,
+                                      duration: 700.ms,
+                                      delay: 260.ms,
+                                      curve: Curves.easeOutCubic,
+                                    ),
                               ),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: _PercentPill(
                                   label: '100%',
                                   onTap: () => _applyPercent(1.0),
-                                ),
+                                )
+                                    .animate()
+                                    .fadeIn(
+                                      duration: 650.ms,
+                                      delay: 350.ms,
+                                      curve: Curves.easeOutCubic,
+                                    )
+                                    .slideX(
+                                      begin: 0.22,
+                                      duration: 700.ms,
+                                      delay: 350.ms,
+                                      curve: Curves.easeOutCubic,
+                                    ),
                               ),
                             ],
                           ),
@@ -471,7 +520,19 @@ class _BuyCryptoBottomSheetState extends State<BuyCryptoBottomSheet> {
                           ),
                         ),
                       ),
-                    ),
+                    )
+                        .animate()
+                        .fadeIn(
+                          duration: 700.ms,
+                          delay: 380.ms,
+                          curve: Curves.easeOutCubic,
+                        )
+                        .slideY(
+                          begin: 0.5,
+                          duration: 750.ms,
+                          delay: 380.ms,
+                          curve: Curves.easeOutCubic,
+                        ),
                   ],
                 ),
               ),

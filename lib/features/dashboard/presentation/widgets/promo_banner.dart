@@ -22,9 +22,9 @@ class PromoBanner extends StatelessWidget {
       ? AppColors.liteHeaderGradientBottom
       : AppColors.headerGradientEnd;
 
-  Color get _ctaBackground => viewMode == DashboardViewMode.lite
-      ? AppColors.liteHeaderGradientTop
-      : AppColors.primary;
+  List<Color> get _ctaGradient => viewMode == DashboardViewMode.lite
+      ? const [Color(0xFF6EDFF8), Color(0xFF2DB8E5)]
+      : const [Color(0xFF44D6F5), Color(0xFF2694E3)];
 
   @override
   Widget build(BuildContext context) {
@@ -114,25 +114,43 @@ class PromoBanner extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
-              ElevatedButton(
-                onPressed: onAction ?? () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _ctaBackground,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.xl,
-                    vertical: AppSpacing.md,
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(AppRadius.full),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: _ctaGradient,
                   ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.full),
-                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _ctaGradient.last.withValues(alpha: 0.35),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
                 ),
-                child: Text(
-                  actionText,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                child: ElevatedButton(
+                  onPressed: onAction ?? () {},
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    foregroundColor: Colors.white,
+                    shadowColor: Colors.transparent,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.xl,
+                      vertical: AppSpacing.md,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.full),
+                    ),
+                  ),
+                  child: Text(
+                    actionText,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),

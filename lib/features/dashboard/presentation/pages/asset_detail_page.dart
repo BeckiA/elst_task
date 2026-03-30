@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -260,7 +261,17 @@ class _AssetDetailPageState extends State<AssetDetailPage> {
           left: AppSpacing.xl,
           right: AppSpacing.xl,
           bottom: AppSpacing.lg + bottomInset,
-          child: _buySellRow(context, d.asset),
+          child: _buySellRow(context, d.asset)
+              .animate()
+              .fadeIn(
+                duration: 500.ms,
+                curve: Curves.easeOutCubic,
+              )
+              .slideY(
+                begin: 0.4,
+                duration: 500.ms,
+                curve: Curves.easeOutCubic,
+              ),
         ),
       ],
     );
@@ -302,9 +313,29 @@ class _AssetDetailPageState extends State<AssetDetailPage> {
                 ),
               ),
             ],
-          ),
+          )
+              .animate()
+              .fadeIn(
+                duration: 600.ms,
+                curve: Curves.easeOutCubic,
+              )
+              .slideY(
+                begin: 0.2,
+                duration: 600.ms,
+                curve: Curves.easeOutCubic,
+              ),
         ),
-        CryptoAssetHelper.cryptoIcon(asset.ticker, size: 56),
+        CryptoAssetHelper.cryptoIcon(asset.ticker, size: 56)
+            .animate()
+            .fadeIn(
+              duration: 550.ms,
+              delay: 120.ms,
+              curve: Curves.easeOut,
+            )
+            .scale(
+              duration: 550.ms,
+              curve: Curves.easeOutBack,
+            ),
       ],
     );
   }
@@ -693,14 +724,39 @@ class _AssetDetailPageState extends State<AssetDetailPage> {
             ),
           ),
         ),
-        if (expanded)
-          Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.lg),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: child,
-            ),
-          ),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 250),
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
+          transitionBuilder: (child, animation) {
+            final curved = CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+            );
+            return FadeTransition(
+              opacity: curved,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, -0.05),
+                  end: Offset.zero,
+                ).animate(curved),
+                child: child,
+              ),
+            );
+          },
+          child: expanded
+              ? Padding(
+                  key: const ValueKey('expanded'),
+                  padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: child,
+                  ),
+                )
+              : const SizedBox.shrink(
+                  key: ValueKey('collapsed'),
+                ),
+        ),
       ],
     );
   }

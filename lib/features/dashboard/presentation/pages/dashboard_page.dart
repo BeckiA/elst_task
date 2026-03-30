@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -39,7 +40,6 @@ class _DashboardPageState extends State<DashboardPage>
   // Individual stagger controllers for sections
   late List<AnimationController> _staggerControllers;
   late List<Animation<double>> _staggerFadeAnimations;
-  late List<Animation<Offset>> _staggerSlideAnimations;
 
   static const int _sectionCount = 6;
   static const double _floatingNavReserve =
@@ -52,11 +52,11 @@ class _DashboardPageState extends State<DashboardPage>
     // Main page fade + slide
     _fadeController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 1500),
     );
     _slideController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 700),
+      duration: const Duration(milliseconds: 1700),
     );
 
     _fadeAnimation = CurvedAnimation(
@@ -79,15 +79,6 @@ class _DashboardPageState extends State<DashboardPage>
 
     _staggerFadeAnimations = _staggerControllers
         .map((c) => CurvedAnimation(parent: c, curve: Curves.easeOut))
-        .toList();
-
-    _staggerSlideAnimations = _staggerControllers
-        .map(
-          (c) => Tween<Offset>(
-            begin: const Offset(0, 0.08),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(parent: c, curve: Curves.easeOutCubic)),
-        )
         .toList();
 
     context.read<DashboardBloc>().add(const LoadDashboard());
@@ -278,9 +269,6 @@ class _DashboardPageState extends State<DashboardPage>
                 },
                 color: AppColors.primary,
                 child: CustomScrollView(
-                  physics: const BouncingScrollPhysics(
-                    parent: AlwaysScrollableScrollPhysics(),
-                  ),
                   slivers: [
                     // Portfolio Header with Quick Actions
                     SliverToBoxAdapter(
@@ -307,7 +295,18 @@ class _DashboardPageState extends State<DashboardPage>
                                 ? QuickActionsLayout.liteFixedRow
                                 : QuickActionsLayout.standard,
                             actions: _quickActionsForMode(state.viewMode),
-                          ),
+                          )
+                              .animate()
+                              .fadeIn(
+                                duration: 1000.ms,
+                                delay: 320.ms,
+                                curve: Curves.easeOutCubic,
+                              )
+                              .slideX(
+                                begin: -0.06,
+                                duration: 1000.ms,
+                                curve: Curves.easeOut,
+                              ),
                         ),
                       ),
                     ),
@@ -321,7 +320,18 @@ class _DashboardPageState extends State<DashboardPage>
                           subtitle: 'by reviewing INDODAX on the App Store',
                           actionText: 'Try Now',
                           viewMode: state.viewMode,
-                        ),
+                        )
+                            .animate()
+                            .fadeIn(
+                              duration: 1100.ms,
+                              delay: 420.ms,
+                              curve: Curves.easeOutCubic,
+                            )
+                            .slideY(
+                              begin: 0.04,
+                              duration: 1100.ms,
+                              curve: Curves.easeOut,
+                            ),
                       ),
                     ),
 
@@ -339,7 +349,17 @@ class _DashboardPageState extends State<DashboardPage>
                                 cryptoBalance: state.stats.cryptoBalance,
                                 cashBalance: state.stats.cashBalance,
                                 isVisible: state.isBalanceVisible,
-                              ),
+                              )
+                                  .animate()
+                                  .fadeIn(
+                                    duration: 1100.ms,
+                                    curve: Curves.easeOutCubic,
+                                  )
+                                  .slideY(
+                                    begin: 0.2,
+                                    duration: 1100.ms,
+                                    curve: Curves.easeOut,
+                                  ),
                               if (state.viewMode == DashboardViewMode.pro) ...[
                                 const SizedBox(height: AppSpacing.lg),
                                 const CryptoSpotPriceCards(),
@@ -397,7 +417,17 @@ class _DashboardPageState extends State<DashboardPage>
                                     FilterAssets(category),
                                   );
                                 },
-                              ),
+                              )
+                                  .animate()
+                                  .fadeIn(
+                                    duration: 1000.ms,
+                                    curve: Curves.easeOutCubic,
+                                  )
+                                  .slideX(
+                                    begin: 0.2,
+                                    duration: 1000.ms,
+                                    curve: Curves.easeOut,
+                                  ),
                             ],
                           ),
                         ),
@@ -417,7 +447,18 @@ class _DashboardPageState extends State<DashboardPage>
                                 AssetDetailPage.route(asset),
                               );
                             },
-                          ),
+                          )
+                              .animate()
+                              .fadeIn(
+                                duration: 1000.ms,
+                                delay: (index * 120).ms,
+                                curve: Curves.easeOutCubic,
+                              )
+                              .slideY(
+                                begin: 0.4,
+                                duration: 1000.ms,
+                                curve: Curves.easeOut,
+                              ),
                         );
                       }, childCount: state.assets.length),
                     ),
@@ -461,10 +502,7 @@ class _DashboardPageState extends State<DashboardPage>
     if (index >= _sectionCount) return child;
     return FadeTransition(
       opacity: _staggerFadeAnimations[index],
-      child: SlideTransition(
-        position: _staggerSlideAnimations[index],
-        child: child,
-      ),
+      child: child,
     );
   }
 }

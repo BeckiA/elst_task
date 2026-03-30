@@ -188,17 +188,17 @@ class _QuickActionButtonState extends State<_QuickActionButton>
 
   @override
   Widget build(BuildContext context) {
+    final borderRadius = BorderRadius.circular(16);
     final boxDecoration = widget.glassStrong
         ? BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.28),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.4),
-            ),
+            borderRadius: borderRadius,
+            color: Colors.transparent,
+            border: Border.all(color: Colors.white.withValues(alpha: 0.48)),
           )
         : BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: borderRadius,
+            color: Colors.transparent,
+            border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
           );
 
     return GestureDetector(
@@ -217,6 +217,18 @@ class _QuickActionButtonState extends State<_QuickActionButton>
               width: 52,
               height: 52,
               decoration: boxDecoration,
+              foregroundDecoration: BoxDecoration(
+                borderRadius: borderRadius,
+                border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.white.withValues(alpha: 0.16),
+                    Colors.white.withValues(alpha: 0.0),
+                  ],
+                ),
+              ),
               child: Icon(
                 widget.item.icon,
                 color: Colors.white,

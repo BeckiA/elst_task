@@ -2,6 +2,7 @@ import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../../../core/theme/app_theme.dart';
@@ -101,8 +102,8 @@ class PortfolioHeader extends StatelessWidget {
         children: [
           if (_isLite)
             Positioned(
-              right: -56,
-              bottom: -40,
+              right: -70,
+              bottom: -64,
               child: Opacity(
                 opacity: 0.1,
                 child: _HeaderXWatermark(size: 280),
@@ -178,13 +179,35 @@ class PortfolioHeader extends StatelessWidget {
                   isSelected: _isLite,
                   isLiteSlot: true,
                   onTap: () => onViewModeChanged(DashboardViewMode.lite),
-                ),
+                )
+                    .animate()
+                    .fadeIn(
+                      duration: 850.ms,
+                      delay: 180.ms,
+                      curve: Curves.easeOutCubic,
+                    )
+                    .slideX(
+                      begin: -0.08,
+                      duration: 850.ms,
+                      curve: Curves.easeOutCubic,
+                    ),
                 _modeSegment(
                   label: 'Pro',
                   isSelected: !_isLite,
                   isLiteSlot: false,
                   onTap: () => onViewModeChanged(DashboardViewMode.pro),
-                ),
+                )
+                    .animate()
+                    .fadeIn(
+                      duration: 850.ms,
+                      delay: 420.ms,
+                      curve: Curves.easeOutCubic,
+                    )
+                    .slideX(
+                      begin: 0.06,
+                      duration: 850.ms,
+                      curve: Curves.easeOutCubic,
+                    ),
               ],
             ),
           ),
@@ -205,12 +228,12 @@ class PortfolioHeader extends StatelessWidget {
     required bool isLiteSlot,
     required VoidCallback onTap,
   }) {
-    late final Widget inner;
+    late final Widget base;
     if (isSelected && isLiteSlot) {
-      inner = Container(
+      base = Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
+          gradient: const LinearGradient( 
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
@@ -230,7 +253,7 @@ class PortfolioHeader extends StatelessWidget {
         ),
       );
     } else if (isSelected && !isLiteSlot) {
-      inner = Container(
+      base = Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
@@ -253,7 +276,7 @@ class PortfolioHeader extends StatelessWidget {
         ),
       );
     } else {
-      inner = Padding(
+      base = Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         child: Text(
           label,
@@ -266,10 +289,25 @@ class PortfolioHeader extends StatelessWidget {
       );
     }
 
+    final animated = isSelected
+        ? base
+            .animate()
+            .scale(
+              begin: const Offset(0.96, 0.96),
+              end: const Offset(1.0, 1.0),
+              duration: 1000.ms,
+              curve: Curves.easeOutCubic,
+            )
+            .fadeIn(
+              duration: 1000.ms,
+              curve: Curves.easeOutCubic,
+            )
+        : base;
+
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: inner,
+      child: animated,
     );
   }
 
@@ -278,22 +316,40 @@ class PortfolioHeader extends StatelessWidget {
   }
 
   Widget _buildTopUpButton() {
-    return Material(
+    final borderRadius = BorderRadius.circular(AppRadius.full);
+    final button = Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTopUp ?? () {},
-        borderRadius: BorderRadius.circular(AppRadius.full),
+        borderRadius: borderRadius,
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(AppRadius.full),
+          borderRadius: borderRadius,
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.22),
-                borderRadius: BorderRadius.circular(AppRadius.full),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.35),
+                borderRadius: borderRadius,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withValues(alpha: 0.32),
+                    const Color(0xFF9DEAFB).withValues(alpha: 0.24),
+                  ],
+                ),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
+              ),
+              foregroundDecoration: BoxDecoration(
+                borderRadius: borderRadius,
+                border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.white.withValues(alpha: 0.2),
+                    Colors.white.withValues(alpha: 0.02),
+                  ],
                 ),
               ),
               child: const Text(
@@ -309,6 +365,11 @@ class PortfolioHeader extends StatelessWidget {
         ),
       ),
     );
+
+    return button
+        .animate()
+        .fadeIn(duration: 1200.ms, delay: 250.ms, curve: Curves.easeOutCubic)
+        .slideY(begin: 0.06, duration: 1200.ms, curve: Curves.easeOutCubic);
   }
 
   Widget _buildLitePortfolioSection(BuildContext context) {
@@ -419,18 +480,33 @@ class PortfolioHeader extends StatelessWidget {
   }
 
   Widget _buildReturnInfoLite(BuildContext context) {
-    final text = isBalanceVisible
-        ? 'Total return ${CurrencyFormatter.formatChange(stats.totalReturn)} (${CurrencyFormatter.formatPercentage(stats.returnPercentage)})'
-        : 'Total return ••••';
+    final valueText = isBalanceVisible
+        ? '${CurrencyFormatter.formatChange(stats.totalReturn)} (${CurrencyFormatter.formatPercentage(stats.returnPercentage)})'
+        : '••••';
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: AppColors.positive,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-        ),
+      child: Row(
+        children: [
+          const Text(
+            'Total return ',
+            style: TextStyle(
+              color: AppColors.headerTextSecondary,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          Text(
+            valueText,
+            style: const TextStyle(
+              color: Color(0xFF28E0DF),
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          )
+              .animate()
+              .fadeIn(duration: 1200.ms, curve: Curves.easeOutCubic)
+              .slideX(begin: 0.08, duration: 1000.ms, curve: Curves.easeOutCubic),
+        ],
       ),
     );
   }
@@ -451,12 +527,15 @@ class PortfolioHeader extends StatelessWidget {
             isBalanceVisible
                 ? '${CurrencyFormatter.formatChange(stats.totalReturn)} (${CurrencyFormatter.formatPercentage(stats.returnPercentage)})'
                 : '••••',
-            style: const TextStyle(
-              color: AppColors.positive,
+            style: TextStyle(
+              color: AppColors.positive.withValues(alpha: 0.5),
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
-          ),
+          )
+              .animate()
+              .fadeIn(duration: 1200.ms, curve: Curves.easeOutCubic)
+              .slideX(begin: -0.08, duration: 1000.ms, curve: Curves.easeOutCubic),
         ],
       ),
     );

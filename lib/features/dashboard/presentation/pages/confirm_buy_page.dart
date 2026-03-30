@@ -2,6 +2,7 @@ import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
@@ -111,7 +112,16 @@ class _ConfirmBuyPageState extends State<ConfirmBuyPage> {
                 ),
                 child: Column(
                   children: [
-                    CryptoAssetHelper.cryptoIcon(widget.summary.ticker, size: 88),
+                    CryptoAssetHelper.cryptoIcon(widget.summary.ticker, size: 88)
+                        .animate()
+                        .fadeIn(
+                          duration: 1200.ms,
+                          curve: Curves.easeOutSine,
+                        )
+                        .scale(
+                          duration: 1300.ms,
+                          curve: Curves.easeOutSine,
+                        ),
                     const SizedBox(height: AppSpacing.xxl),
                     Text(
                       'Buy ${widget.summary.ticker}',
@@ -120,9 +130,32 @@ class _ConfirmBuyPageState extends State<ConfirmBuyPage> {
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
                       ),
-                    ),
+                    )
+                        .animate()
+                        .fadeIn(
+                          duration: 1200.ms,
+                          delay: 420.ms,
+                          curve: Curves.easeOutSine,
+                        )
+                        .scale(
+                          duration: 1300.ms,
+                          delay: 420.ms,
+                          curve: Curves.easeOutSine,
+                        ),
                     const SizedBox(height: AppSpacing.xxxl),
-                    _SummaryCard(summary: widget.summary),
+                    _SummaryCard(summary: widget.summary)
+                        .animate()
+                        .fadeIn(
+                          duration: 1300.ms,
+                          delay: 700.ms,
+                          curve: Curves.easeOutSine,
+                        )
+                        .slideY(
+                          begin: 0.26,
+                          duration: 1300.ms,
+                          delay: 700.ms,
+                          curve: Curves.easeOutSine,
+                        ),
                     const SizedBox(height: AppSpacing.lg),
                     Text(
                       'I understand that I won\'t be able to withdraw this purchase for 72 hours.',
@@ -164,7 +197,8 @@ class _OrderSuccessView extends StatelessWidget {
   Widget build(BuildContext context) {
     const pillHeight = 45.0;
     final amountStr = _formatCryptoAmount(summary.cryptoAmount);
-    final topPad = MediaQuery.paddingOf(context).top;
+    final viewPadding = MediaQuery.paddingOf(context);
+    final topPad = viewPadding.top;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
@@ -271,8 +305,11 @@ class _OrderSuccessView extends StatelessWidget {
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: AppSpacing.xl,
+                              padding: EdgeInsets.fromLTRB(
+                                AppSpacing.xl,
+                                0,
+                                AppSpacing.xl,
+                                AppSpacing.md + viewPadding.bottom,
                               ),
                               child: SizedBox(
                                 width: double.infinity,
@@ -403,7 +440,16 @@ class _GlassSuccessIcon extends StatelessWidget {
           ),
         ],
       ),
-    );
+    )
+        .animate()
+        .fadeIn(
+          duration: 1100.ms,
+          curve: Curves.easeOutSine,
+        )
+        .scale(
+          duration: 1300.ms,
+          curve: Curves.easeOutSine,
+        );
   }
 }
 
@@ -440,6 +486,7 @@ class _SummaryCard extends StatelessWidget {
             cryptoStr,
             valueBold: true,
             labelMuted: false,
+            valueDelayMs: 520,
           ),
           const SizedBox(height: AppSpacing.md),
           _row(
@@ -447,6 +494,7 @@ class _SummaryCard extends StatelessWidget {
             CurrencyFormatter.formatRupiah(summary.buyPricePerUnitIdr),
             valueBold: true,
             labelMuted: false,
+            valueDelayMs: 700,
           ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
@@ -456,18 +504,21 @@ class _SummaryCard extends StatelessWidget {
             'Amount',
             CurrencyFormatter.formatRupiah(summary.amountIdr.toDouble()),
             labelMuted: true,
+            valueDelayMs: 880,
           ),
           const SizedBox(height: AppSpacing.md),
           _row(
             'Transaction Fee',
             CurrencyFormatter.formatRupiah(summary.transactionFeeIdr),
             labelMuted: true,
+            valueDelayMs: 1060,
           ),
           const SizedBox(height: AppSpacing.md),
           _row(
             'Tax',
             CurrencyFormatter.formatRupiah(summary.taxIdr),
             labelMuted: true,
+            valueDelayMs: 1240,
           ),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
@@ -479,6 +530,8 @@ class _SummaryCard extends StatelessWidget {
             valueBold: true,
             valueColor: AppColors.primary,
             labelMuted: false,
+            valueDelayMs: 1640,
+            valueFromBottom: true,
           ),
         ],
       ),
@@ -491,6 +544,8 @@ class _SummaryCard extends StatelessWidget {
     bool valueBold = false,
     bool labelMuted = false,
     Color? valueColor,
+    int valueDelayMs = 0,
+    bool valueFromBottom = false,
   }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -508,15 +563,49 @@ class _SummaryCard extends StatelessWidget {
         ),
         const SizedBox(width: AppSpacing.md),
         Flexible(
-          child: Text(
-            value,
-            textAlign: TextAlign.right,
-            style: TextStyle(
-              color: valueColor ?? AppColors.textPrimary,
-              fontSize: 14,
-              fontWeight: valueBold ? FontWeight.w800 : FontWeight.w600,
-            ),
-          ),
+          child: valueFromBottom
+              ? Text(
+                  value,
+                  textAlign: TextAlign.right,
+                  style: TextStyle(
+                    color: valueColor ?? AppColors.textPrimary,
+                    fontSize: 14,
+                    fontWeight: valueBold ? FontWeight.w800 : FontWeight.w600,
+                  ),
+                )
+                    .animate()
+                    .fadeIn(
+                      duration: 820.ms,
+                      delay: valueDelayMs.ms,
+                      curve: Curves.easeOutSine,
+                    )
+                    .slideY(
+                      begin: 0.34,
+                      duration: 820.ms,
+                      delay: valueDelayMs.ms,
+                      curve: Curves.easeOutSine,
+                    )
+              : Text(
+                  value,
+                  textAlign: TextAlign.right,
+                  style: TextStyle(
+                    color: valueColor ?? AppColors.textPrimary,
+                    fontSize: 14,
+                    fontWeight: valueBold ? FontWeight.w800 : FontWeight.w600,
+                  ),
+                )
+                    .animate()
+                    .fadeIn(
+                      duration: 820.ms,
+                      delay: valueDelayMs.ms,
+                      curve: Curves.easeOutSine,
+                    )
+                    .slideX(
+                      begin: 0.26,
+                      duration: 820.ms,
+                      delay: valueDelayMs.ms,
+                      curve: Curves.easeOutSine,
+                    ),
         ),
       ],
     );
