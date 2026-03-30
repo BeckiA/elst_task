@@ -35,7 +35,7 @@ Key directories:
 - `assets/images/` - image assets
 - `assets/svgs/` - SVG assets
 
-## Mockup Image Location
+## Mockup Images
 
 ![Indodax Lite Mockup](assets/mockups/indodax_lite.png)
 ![Indodax Pro Mockup](assets/mockups/indodax_pro.png)
