@@ -165,7 +165,19 @@ class _ConfirmBuyPageState extends State<ConfirmBuyPage> {
                         fontSize: 12,
                         height: 1.4,
                       ),
-                    ),
+                    )
+                        .animate()
+                        .fadeIn(
+                          duration: 1300.ms,
+                          delay: 700.ms,
+                          curve: Curves.easeOutSine,
+                        )
+                        .slideY(
+                          begin: 0.26,
+                          duration: 1300.ms,
+                          delay: 700.ms,
+                          curve: Curves.easeOutSine,
+                        ),
                     const SizedBox(height: AppSpacing.xxl),
                   ],
                 ),
