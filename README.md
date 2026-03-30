@@ -1,6 +1,6 @@
 # Indodax Crypto Exchange Redesign App
 
-A Flutter dashboard app for portfolio tracking, asset details, and crypto buy flows.
+Redesigned Indodax crypto app with a focus on simplicity and high-stakes functionality.
 
 ## Project Overview
 
@@ -38,8 +38,8 @@ Key directories:
 ## Mockup Image Location
 
 ```md
-[Indodax Lite Mockup](assets/mockups/indodax_lite.png)
-[Indodax Pro Mockup](assets/mockups/indodax_pro.png)
+![Indodax Lite Mockup](assets/mockups/indodax_lite.png)
+![Indodax Pro Mockup](assets/mockups/indodax_pro.png)
 
 ```
 
