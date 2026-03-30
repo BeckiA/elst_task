@@ -37,11 +37,8 @@ Key directories:
 
 ## Mockup Image Location
 
-```md
 ![Indodax Lite Mockup](assets/mockups/indodax_lite.png)
 ![Indodax Pro Mockup](assets/mockups/indodax_pro.png)
-
-```
 
 ## Notes
 
